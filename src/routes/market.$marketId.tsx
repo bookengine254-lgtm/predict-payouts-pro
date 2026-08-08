@@ -92,7 +92,7 @@ const RANGES = [
 ] as const;
 
 function MarketDetail() {
-  const { market } = Route.useLoaderData();
+  const { market } = Route.useLoaderData() as { market: Market };
   const [range, setRange] = useState<(typeof RANGES)[number][0]>("1W");
   const [outcomeId, setOutcomeId] = useState(market.outcomes[0]!.id);
   const [stake, setStake] = useState(200);
