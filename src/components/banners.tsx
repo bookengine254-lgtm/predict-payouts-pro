@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link, type LinkProps } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
 import bannerInvite from "@/assets/banner-invite.jpg";
 import bannerLearn from "@/assets/banner-learn.jpg";
@@ -12,7 +12,8 @@ type BannerProps = {
   cta: string;
   image: string;
   tone: "invite" | "learn" | "payout";
-  className?: string;
+  className?: string | undefined;
+  to: LinkProps["to"];
 };
 
 const toneClasses: Record<BannerProps["tone"], string> = {
@@ -27,7 +28,7 @@ const toneText: Record<BannerProps["tone"], string> = {
   payout: "text-amber",
 };
 
-function Banner({ eyebrow, title, body, cta, image, tone, to, className }: BannerProps & { to: string }) {
+function Banner({ eyebrow, title, body, cta, image, tone, to, className }: BannerProps) {
   return (
     <Link
       to={to}
@@ -57,7 +58,7 @@ function Banner({ eyebrow, title, body, cta, image, tone, to, className }: Banne
   );
 }
 
-export function InviteBanner({ className }: { className?: string }) {
+export function InviteBanner({ className }: { className?: string | undefined }) {
   return (
     <Banner
       to="/profile/$handle"
@@ -72,7 +73,7 @@ export function InviteBanner({ className }: { className?: string }) {
   );
 }
 
-export function LearnBanner({ className }: { className?: string }) {
+export function LearnBanner({ className }: { className?: string | undefined }) {
   return (
     <Banner
       to="/how-it-works"
@@ -87,7 +88,7 @@ export function LearnBanner({ className }: { className?: string }) {
   );
 }
 
-export function PayoutBanner({ className }: { className?: string }) {
+export function PayoutBanner({ className }: { className?: string | undefined }) {
   return (
     <Banner
       to="/payouts"
