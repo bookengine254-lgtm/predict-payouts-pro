@@ -36,10 +36,11 @@ import {
   probabilities,
   totalPool,
   trendDelta,
+  type Market,
 } from "@/lib/mock-data";
 
 export const Route = createFileRoute("/market/$marketId")({
-  loader: ({ params }) => {
+  loader: ({ params }): { market: Market } => {
     const market = marketById(params.marketId);
     if (!market) throw notFound();
     return { market };
