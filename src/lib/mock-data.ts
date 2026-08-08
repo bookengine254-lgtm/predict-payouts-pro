@@ -467,19 +467,21 @@ export function probabilities(market: Market) {
   return market.outcomes.map((o) => impliedProbability(o.pool, total));
 }
 
-export function leadOutcome(market: Market) {
-  const total = totalPool(market);
-  return market.outcomes.reduce(
+export function leadOutcome(market: Market): Outcome {
+  return market.outcomes.reduce<Outcome>(
     (best, o) => (o.pool > best.pool ? o : best),
-    market.outcomes[0],
-  ) as Outcome & { probability?: number };
+    market.outcomes[0]!,
+  );
 }
 
 export function trendDelta(market: Market) {
   const h = market.history;
   if (h.length < 2) return 0;
-  return h[h.length - 1].values[0] - h[Math.max(0, h.length - 9)].values[0];
+  const last = h[h.length - 1]!.values[0]!;
+  const prev = h[Math.max(0, h.length - 9)]!.values[0]!;
+  return last - prev;
 }
+
 
 export function categoryOf(id: CategoryId) {
   return categories.find((c) => c.id === id)!;
