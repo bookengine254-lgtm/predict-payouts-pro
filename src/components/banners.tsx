@@ -61,7 +61,7 @@ function Banner({ eyebrow, title, body, cta, image, tone, to, className }: Banne
 export function InviteBanner({ className }: { className?: string | undefined }) {
   return (
     <Banner
-      to="/profile/$handle"
+      to="/invite"
       tone="invite"
       eyebrow="Invite & earn"
       title="Bring three friends, keep 10% of their platform fees"
