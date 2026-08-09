@@ -5,18 +5,31 @@ import { categoryOf, probabilities, totalPool, trendDelta, type Market } from "@
 import { MarketThumb } from "./market-thumb";
 import { Sparkline } from "./sparkline";
 import { toneSoft } from "./tone";
-import { TrendingDown, TrendingUp, Users } from "lucide-react";
+import { BadgeCheck, TrendingDown, TrendingUp, Users } from "lucide-react";
 
+/**
+ * Compact market card. Binary, multi-outcome and sports markets all render in the
+ * same fixed vertical rhythm: header row, one outcome row, one stats row.
+ * Multi-outcome markets collapse to the top two runners plus a "+N" pill so a
+ * five-way market never grows taller than a Yes/No card beside it.
+ */
 export function MarketCard({ market }: { market: Market }) {
   const probs = probabilities(market);
   const pool = totalPool(market);
   const delta = trendDelta(market);
   const cat = categoryOf(market.category);
-  const yes = market.outcomes[0]!;
-  const no = market.outcomes[1]!;
-  const yesProb = probs[0] ?? 0;
-  const noProb = probs[1] ?? 0;
   const series = market.history.map((h) => h.values[0] ?? 0);
+  const resolvedOutcome = market.resolved
+    ? market.outcomes.find((o) => o.id === market.resolved!.outcomeId)
+    : undefined;
+
+  const ranked = market.outcomes
+    .map((o, i) => ({ ...o, prob: probs[i] ?? 0 }))
+    .sort((a, b) => b.prob - a.prob);
+  const isBinary = market.outcomes.length === 2;
+  const shown = isBinary ? market.outcomes.map((o, i) => ({ ...o, prob: probs[i] ?? 0 })) : ranked.slice(0, 2);
+  const hidden = market.outcomes.length - shown.length;
+  const lead = ranked[0]!;
 
   return (
     <Link
@@ -30,27 +43,55 @@ export function MarketCard({ market }: { market: Market }) {
           <h3 className="line-clamp-2 text-[0.95rem] leading-snug font-medium tracking-normal text-card-foreground">
             {market.question}
           </h3>
-          <div className="mt-1 flex items-center gap-1.5 text-[0.7rem] text-muted-foreground">
-            <span className={cn("rounded-full px-1.5 py-0.5 font-medium", toneSoft[cat.tone])}>{cat.label}</span>
-            <span className="tabular">{timeLeft(market.closesAt)}</span>
+          <div className="mt-1 flex items-center gap-1.5 overflow-hidden text-[0.7rem] text-muted-foreground">
+            <span className={cn("shrink-0 rounded-full px-1.5 py-0.5 font-medium", toneSoft[cat.tone])}>
+              {cat.label}
+            </span>
+            {market.kind === "sports" && market.sports && (
+              <span className="truncate">{market.sports.league}</span>
+            )}
+            {market.kind === "multi" && <span className="shrink-0">{market.outcomes.length}-way</span>}
+            <span className="shrink-0 tabular">{market.resolved ? "Resolved" : timeLeft(market.closesAt)}</span>
           </div>
         </div>
         <div className="flex flex-col items-end gap-0.5">
           <span className="font-display text-xl leading-none tabular text-card-foreground">
-            {formatPct(yesProb)}
+            {formatPct(lead.prob)}
           </span>
           <Sparkline values={series} tone={delta >= 0 ? "yes" : "no"} />
         </div>
       </div>
 
-      <div className="flex items-center gap-2">
-        <span className="flex-1 rounded-lg bg-yes-soft py-1.5 text-center text-xs font-semibold text-yes transition-colors group-hover:bg-yes group-hover:text-primary-foreground">
-          {yes.label} {formatPct(yesProb)}
-        </span>
-        <span className="flex-1 rounded-lg bg-no-soft py-1.5 text-center text-xs font-semibold text-no transition-colors group-hover:bg-no group-hover:text-primary-foreground">
-          {no.label} {formatPct(noProb)}
-        </span>
-      </div>
+      {resolvedOutcome ? (
+        <div className="flex items-center gap-2 rounded-lg bg-yes-soft px-2.5 py-1.5 text-xs font-semibold text-yes">
+          <BadgeCheck className="size-3.5 shrink-0" />
+          <span className="truncate">Resolved {resolvedOutcome.label}</span>
+        </div>
+      ) : (
+        <div className="flex items-center gap-2">
+          {shown.map((o) => (
+            <span
+              key={o.id}
+              className={cn(
+                "flex min-w-0 flex-1 items-center justify-center gap-1 rounded-lg py-1.5 text-xs font-semibold transition-colors",
+                o.tone === "no"
+                  ? "bg-no-soft text-no group-hover:bg-no group-hover:text-primary-foreground"
+                  : o.tone === "yes"
+                    ? "bg-yes-soft text-yes group-hover:bg-yes group-hover:text-primary-foreground"
+                    : toneSoft[o.tone],
+              )}
+            >
+              <span className="truncate">{o.label}</span>
+              <span className="shrink-0 tabular">{formatPct(o.prob)}</span>
+            </span>
+          ))}
+          {hidden > 0 && (
+            <span className="shrink-0 rounded-lg bg-secondary px-2 py-1.5 text-xs font-semibold text-muted-foreground tabular">
+              +{hidden}
+            </span>
+          )}
+        </div>
+      )}
 
       <div className="flex items-center justify-between text-[0.7rem] text-muted-foreground">
         <span className="tabular">{formatKsh(pool, { compact: true })} pool</span>
