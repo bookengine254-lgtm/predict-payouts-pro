@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CreateRouteImport } from './routes/create'
 import { Route as DisputesRouteImport } from './routes/disputes'
+import { Route as HowItWorksRouteImport } from './routes/how-it-works'
 import { Route as InviteRouteImport } from './routes/invite'
 import { Route as LeaderboardRouteImport } from './routes/leaderboard'
 import { Route as PortfolioRouteImport } from './routes/portfolio'
@@ -31,6 +32,11 @@ const CreateRoute = CreateRouteImport.update({
 const DisputesRoute = DisputesRouteImport.update({
   id: '/disputes',
   path: '/disputes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HowItWorksRoute = HowItWorksRouteImport.update({
+  id: '/how-it-works',
+  path: '/how-it-works',
   getParentRoute: () => rootRouteImport,
 } as any)
 const InviteRoute = InviteRouteImport.update({
@@ -63,6 +69,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/create': typeof CreateRoute
   '/disputes': typeof DisputesRoute
+  '/how-it-works': typeof HowItWorksRoute
   '/invite': typeof InviteRoute
   '/leaderboard': typeof LeaderboardRoute
   '/portfolio': typeof PortfolioRoute
@@ -73,6 +80,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/create': typeof CreateRoute
   '/disputes': typeof DisputesRoute
+  '/how-it-works': typeof HowItWorksRoute
   '/invite': typeof InviteRoute
   '/leaderboard': typeof LeaderboardRoute
   '/portfolio': typeof PortfolioRoute
@@ -84,6 +92,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/create': typeof CreateRoute
   '/disputes': typeof DisputesRoute
+  '/how-it-works': typeof HowItWorksRoute
   '/invite': typeof InviteRoute
   '/leaderboard': typeof LeaderboardRoute
   '/portfolio': typeof PortfolioRoute
@@ -96,6 +105,7 @@ export interface FileRouteTypes {
     | '/'
     | '/create'
     | '/disputes'
+    | '/how-it-works'
     | '/invite'
     | '/leaderboard'
     | '/portfolio'
@@ -106,6 +116,7 @@ export interface FileRouteTypes {
     | '/'
     | '/create'
     | '/disputes'
+    | '/how-it-works'
     | '/invite'
     | '/leaderboard'
     | '/portfolio'
@@ -116,6 +127,7 @@ export interface FileRouteTypes {
     | '/'
     | '/create'
     | '/disputes'
+    | '/how-it-works'
     | '/invite'
     | '/leaderboard'
     | '/portfolio'
@@ -127,6 +139,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CreateRoute: typeof CreateRoute
   DisputesRoute: typeof DisputesRoute
+  HowItWorksRoute: typeof HowItWorksRoute
   InviteRoute: typeof InviteRoute
   LeaderboardRoute: typeof LeaderboardRoute
   PortfolioRoute: typeof PortfolioRoute
@@ -155,6 +168,13 @@ declare module '@tanstack/react-router' {
       path: '/disputes'
       fullPath: '/disputes'
       preLoaderRoute: typeof DisputesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/how-it-works': {
+      id: '/how-it-works'
+      path: '/how-it-works'
+      fullPath: '/how-it-works'
+      preLoaderRoute: typeof HowItWorksRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/invite': {
@@ -199,6 +219,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CreateRoute: CreateRoute,
   DisputesRoute: DisputesRoute,
+  HowItWorksRoute: HowItWorksRoute,
   InviteRoute: InviteRoute,
   LeaderboardRoute: LeaderboardRoute,
   PortfolioRoute: PortfolioRoute,
