@@ -5,11 +5,12 @@ import {
   BarChart3,
   Compass,
   Gavel,
+  Gift,
   LayoutGrid,
   LineChart,
+  Plus,
   PlusCircle,
   Search,
-  Settings,
   Trophy,
   User,
   Wallet,
@@ -19,10 +20,11 @@ import { cn } from "@/lib/utils";
 import { currentUser } from "@/lib/mock-data";
 import { formatKsh } from "@/lib/parimutuel";
 
+/** Bottom nav: four destinations plus the rewards gift in the middle. Creating a
+ * market lives on the home feed as a thumb-reach floating button instead. */
 const primaryNav = [
   { to: "/", label: "Markets", icon: Compass },
   { to: "/portfolio", label: "Portfolio", icon: BarChart3 },
-  { to: "/create", label: "Create", icon: PlusCircle },
   { to: "/activity", label: "Activity", icon: Bell },
   { to: "/profile/you", label: "Profile", icon: User },
 ] as const;
@@ -32,9 +34,9 @@ const railNav = [
   { to: "/portfolio", label: "Portfolio", icon: BarChart3 },
   { to: "/wallet", label: "Wallet", icon: Wallet },
   { to: "/leaderboard", label: "Leaderboard", icon: Trophy },
-  { to: "/creator", label: "Creator studio", icon: LineChart },
+  { to: "/invite", label: "Rewards", icon: Gift },
+  { to: "/payouts", label: "Payouts", icon: LineChart },
   { to: "/disputes", label: "Resolutions", icon: Gavel },
-  { to: "/settings", label: "Settings", icon: Settings },
 ] as const;
 
 const footerLinks: { heading: string; links: { to: string; label: string }[] }[] = [
@@ -44,7 +46,7 @@ const footerLinks: { heading: string; links: { to: string; label: string }[] }[]
       { to: "/", label: "Discover markets" },
       { to: "/leaderboard", label: "Leaderboard" },
       { to: "/create", label: "Create a market" },
-      { to: "/creator", label: "Creator studio" },
+      { to: "/portfolio", label: "Your portfolio" },
     ],
   },
   {
@@ -52,26 +54,17 @@ const footerLinks: { heading: string; links: { to: string; label: string }[] }[]
     links: [
       { to: "/how-it-works", label: "Getting started" },
       { to: "/payouts", label: "Payout & pool rules" },
-      { to: "/fees", label: "Fees" },
       { to: "/disputes", label: "Resolutions & disputes" },
+      { to: "/activity", label: "Activity feed" },
     ],
   },
   {
-    heading: "Company",
+    heading: "Earn",
     links: [
-      { to: "/about", label: "About Soko" },
-      { to: "/skill-policy", label: "Skill-based policy" },
-      { to: "/responsible", label: "Play responsibly" },
-      { to: "/faq", label: "Support & FAQ" },
-    ],
-  },
-  {
-    heading: "Legal",
-    links: [
-      { to: "/terms", label: "Terms of use" },
-      { to: "/privacy", label: "Privacy" },
-      { to: "/settings", label: "Settings" },
+      { to: "/invite", label: "Invite & earn" },
+      { to: "/create", label: "Creator commission" },
       { to: "/wallet", label: "Wallet & M-Pesa" },
+      { to: "/profile/you", label: "Your profile" },
     ],
   },
 ];
@@ -110,10 +103,10 @@ function TopBar() {
         </nav>
         <div className="lg:hidden" />
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           <button
             type="button"
-            className="grid size-9 place-items-center rounded-lg text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+            className="hidden size-9 place-items-center rounded-lg text-muted-foreground transition-colors hover:bg-accent hover:text-foreground sm:grid"
             aria-label="Search markets"
           >
             <Search className="size-4.5" />
@@ -125,10 +118,19 @@ function TopBar() {
             <Wallet className="size-3.5" />
             <span className="tabular">{formatKsh(currentUser.balance, { compact: true })}</span>
           </Link>
+          {/* Mobile: one-tap green top-up sitting right beside the wallet */}
+          <Link
+            to="/wallet"
+            search={{ topup: true }}
+            className="flex items-center gap-1 rounded-lg bg-yes px-2 py-1.5 text-xs font-bold text-primary-foreground transition-opacity hover:opacity-90 lg:hidden"
+            aria-label="Top up with M-Pesa"
+          >
+            <Plus className="size-3.5" /> Top up
+          </Link>
           <Link
             to="/profile/$handle"
             params={{ handle: "you" }}
-            className="hidden size-9 place-items-center rounded-full bg-grape-soft font-display text-xs text-grape sm:grid"
+            className="hidden size-9 place-items-center rounded-full bg-grape-soft font-display text-xs text-grape lg:grid"
             aria-label="Your profile"
           >
             {currentUser.initials}
@@ -170,47 +172,69 @@ function MenuRail() {
 
 function BottomNav() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const isActive = (to: string) => (to === "/" ? pathname === "/" : pathname.startsWith(`/${to.split("/")[1]}`));
 
   return (
     <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-lg lg:hidden">
       <ul className="grid grid-cols-5">
-        {primaryNav.map((item) => {
-          const active = item.to === "/" ? pathname === "/" : pathname.startsWith(item.to.split("/")[1] ? `/${item.to.split("/")[1]}` : item.to);
-          const center = item.label === "Create";
-          return (
-            <li key={item.label} className="flex justify-center">
-              <Link
-                to={item.to}
-                className={cn(
-                  "flex w-full flex-col items-center gap-0.5 py-2 text-[0.62rem] font-medium transition-colors",
-                  active ? "text-primary" : "text-muted-foreground",
-                )}
-              >
-                {center ? (
-                  <span className="grid size-8 place-items-center rounded-full bg-primary text-primary-foreground">
-                    <item.icon className="size-4.5" />
-                  </span>
-                ) : (
-                  <item.icon className="size-5" />
-                )}
-                {item.label}
-              </Link>
-            </li>
-          );
-        })}
+        {primaryNav.slice(0, 2).map((item) => (
+          <NavItem key={item.label} {...item} active={isActive(item.to)} />
+        ))}
+        <li className="flex justify-center">
+          <Link
+            to="/invite"
+            aria-label="Rewards and referral bonuses"
+            className="flex w-full flex-col items-center gap-0.5 py-2 text-[0.62rem] font-medium text-muted-foreground"
+          >
+            <span className="grid size-8 place-items-center rounded-full bg-grape-soft text-grape">
+              <Gift className="size-4.5 tremble" />
+            </span>
+            Rewards
+          </Link>
+        </li>
+        {primaryNav.slice(2).map((item) => (
+          <NavItem key={item.label} {...item} active={isActive(item.to)} />
+        ))}
       </ul>
     </nav>
+  );
+}
+
+function NavItem({
+  to,
+  label,
+  icon: Icon,
+  active,
+}: {
+  to: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  active: boolean;
+}) {
+  return (
+    <li className="flex justify-center">
+      <Link
+        to={to}
+        className={cn(
+          "flex w-full flex-col items-center gap-0.5 py-2 text-[0.62rem] font-medium transition-colors",
+          active ? "text-primary" : "text-muted-foreground",
+        )}
+      >
+        <Icon className="size-5" />
+        {label}
+      </Link>
+    </li>
   );
 }
 
 function SiteFooter() {
   return (
     <footer className="mt-8 border-t border-border bg-secondary/40 pb-24 lg:pb-0">
-      <div className="mx-auto grid max-w-[1280px] gap-8 px-4 py-10 sm:grid-cols-2 lg:grid-cols-5 lg:px-8">
+      <div className="mx-auto grid max-w-[1280px] gap-8 px-4 py-10 sm:grid-cols-2 lg:grid-cols-4 lg:px-8">
         <div className="lg:col-span-1">
           <Logo />
           <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
-            Soko is a skill-based forecasting exchange. Forecasters stake into shared pools, and the pool pays the
+            Polka is a skill-based forecasting exchange. Forecasters stake into shared pools, and the pool pays the
             people who read the world correctly. No bookmaker, no house odds, no betting.
           </p>
         </div>
@@ -230,7 +254,7 @@ function SiteFooter() {
         ))}
       </div>
       <div className="border-t border-border px-4 py-4 text-center text-[0.7rem] text-muted-foreground lg:px-8">
-        Soko · Skill-based forecasting, parimutuel payouts, M-Pesa settlement. 18+. Forecast within your means.
+        Polka · Skill-based forecasting, parimutuel payouts, M-Pesa settlement. 18+. Forecast within your means.
       </div>
     </footer>
   );
