@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CreateRouteImport } from './routes/create'
+import { Route as PortfolioRouteImport } from './routes/portfolio'
 import { Route as WalletRouteImport } from './routes/wallet'
 import { Route as MarketMarketIdRouteImport } from './routes/market.$marketId'
 
@@ -22,6 +23,11 @@ const IndexRoute = IndexRouteImport.update({
 const CreateRoute = CreateRouteImport.update({
   id: '/create',
   path: '/create',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PortfolioRoute = PortfolioRouteImport.update({
+  id: '/portfolio',
+  path: '/portfolio',
   getParentRoute: () => rootRouteImport,
 } as any)
 const WalletRoute = WalletRouteImport.update({
@@ -38,12 +44,14 @@ const MarketMarketIdRoute = MarketMarketIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/create': typeof CreateRoute
+  '/portfolio': typeof PortfolioRoute
   '/wallet': typeof WalletRoute
   '/market/$marketId': typeof MarketMarketIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/create': typeof CreateRoute
+  '/portfolio': typeof PortfolioRoute
   '/wallet': typeof WalletRoute
   '/market/$marketId': typeof MarketMarketIdRoute
 }
@@ -51,20 +59,28 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/create': typeof CreateRoute
+  '/portfolio': typeof PortfolioRoute
   '/wallet': typeof WalletRoute
   '/market/$marketId': typeof MarketMarketIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/create' | '/wallet' | '/market/$marketId'
+  fullPaths: '/' | '/create' | '/portfolio' | '/wallet' | '/market/$marketId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/create' | '/wallet' | '/market/$marketId'
-  id: '__root__' | '/' | '/create' | '/wallet' | '/market/$marketId'
+  to: '/' | '/create' | '/portfolio' | '/wallet' | '/market/$marketId'
+  id:
+    | '__root__'
+    | '/'
+    | '/create'
+    | '/portfolio'
+    | '/wallet'
+    | '/market/$marketId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CreateRoute: typeof CreateRoute
+  PortfolioRoute: typeof PortfolioRoute
   WalletRoute: typeof WalletRoute
   MarketMarketIdRoute: typeof MarketMarketIdRoute
 }
@@ -83,6 +99,13 @@ declare module '@tanstack/react-router' {
       path: '/create'
       fullPath: '/create'
       preLoaderRoute: typeof CreateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/portfolio': {
+      id: '/portfolio'
+      path: '/portfolio'
+      fullPath: '/portfolio'
+      preLoaderRoute: typeof PortfolioRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/wallet': {
@@ -105,6 +128,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CreateRoute: CreateRoute,
+  PortfolioRoute: PortfolioRoute,
   WalletRoute: WalletRoute,
   MarketMarketIdRoute: MarketMarketIdRoute,
 }
