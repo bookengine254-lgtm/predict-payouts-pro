@@ -41,6 +41,9 @@ export interface Market {
   question: string;
   shortTitle: string;
   category: CategoryId;
+  /** binary (default) | multi-outcome | custom sports fixture */
+  kind?: "binary" | "multi" | "sports";
+  sports?: { home: string; away: string; league: string; kickoff: string };
   thumbnail?: string;
   thumbnailEmoji: string;
   outcomes: Outcome[];
@@ -172,26 +175,35 @@ function seeded(seed: number) {
   };
 }
 
-function makeHistory(seed: number, start: number, points = 40): { t: string; values: number[] }[] {
+/**
+ * Fixed clock anchor. Mock timestamps are derived from a constant so the server
+ * and the client render identical relative labels (no hydration mismatch).
+ */
+export const NOW = Date.parse("2026-08-09T06:00:00.000Z");
+
+function makeHistory(seed: number, start: number, points = 40, outcomeCount = 2): { t: string; values: number[] }[] {
   const rand = seeded(seed);
   const out: { t: string; values: number[] }[] = [];
   let p = start;
-  const now = Date.now();
   for (let i = points - 1; i >= 0; i--) {
     p = Math.min(0.94, Math.max(0.06, p + (rand() - 0.5) * 0.06));
-    out.push({
-      t: new Date(now - i * 6 * 3600_000).toISOString(),
-      values: [Number(p.toFixed(4)), Number((1 - p).toFixed(4))],
-    });
+    const values = [Number(p.toFixed(4))];
+    let remaining = 1 - p;
+    for (let k = 1; k < outcomeCount; k++) {
+      const share = k === outcomeCount - 1 ? remaining : remaining * (0.35 + rand() * 0.3);
+      values.push(Number(Math.max(0.01, share).toFixed(4)));
+      remaining = Math.max(0.01, remaining - share);
+    }
+    out.push({ t: new Date(NOW - i * 6 * 3600_000).toISOString(), values });
   }
   return out;
 }
 
 function inDays(days: number) {
-  return new Date(Date.now() + days * 86_400_000).toISOString();
+  return new Date(NOW + days * 86_400_000).toISOString();
 }
 function daysAgo(days: number) {
-  return new Date(Date.now() - days * 86_400_000).toISOString();
+  return new Date(NOW - days * 86_400_000).toISOString();
 }
 
 function binary(yes: number, no: number): Outcome[] {
@@ -201,7 +213,7 @@ function binary(yes: number, no: number): Outcome[] {
   ];
 }
 
-export const markets: Market[] = [
+const baseMarkets: Market[] = [
   {
     id: "nairobi-expressway-toll",
     question: "Will the Nairobi Expressway toll be raised before 1 October?",
@@ -454,6 +466,172 @@ export const markets: Market[] = [
   },
 ];
 
+
+/** Multi-outcome (3+) and custom sports markets. Rendered compactly so they never
+ * stretch taller than the binary cards in the same grid. */
+const multiMarkets: Market[] = [
+  {
+    id: "next-nairobi-governor",
+    question: "Who will be sworn in as Nairobi Governor next?",
+    shortTitle: "Next Nairobi Governor",
+    category: "politics",
+    thumbnailEmoji: "🏛️",
+    kind: "multi",
+    outcomes: [
+      { id: "a", label: "Kiarie", pool: 214_000, tone: "grape" },
+      { id: "b", label: "Wambui", pool: 168_000, tone: "teal" },
+      { id: "c", label: "Onyango", pool: 92_000, tone: "amber" },
+      { id: "d", label: "Someone else", pool: 41_000, tone: "pinkish" },
+    ],
+    closesAt: inDays(44),
+    createdAt: daysAgo(20),
+    creator: "wanjiku",
+    creatorFeeBps: 140,
+    platformFeeBps: PLATFORM_FEE_BPS,
+    seedLiquidity: 45_000,
+    status: "open",
+    aiReview: { verdict: "approved", note: "Mutually exclusive field with a catch-all. Approved." },
+    resolutionCriteria:
+      "Resolves to the candidate officially sworn in. If nobody on the list is sworn in, resolves to Someone else.",
+    sources: ["IEBC declarations", "Kenya Gazette"],
+    forecasters: 2_640,
+    history: makeHistory(201, 0.4, 40, 4),
+    featured: true,
+  },
+  {
+    id: "cbk-rate-decision-band",
+    question: "What will the CBK do with the base rate at the next MPC?",
+    shortTitle: "CBK rate decision",
+    category: "economy",
+    thumbnailEmoji: "📉",
+    kind: "multi",
+    outcomes: [
+      { id: "hold", label: "Hold", pool: 188_000, tone: "teal" },
+      { id: "cut25", label: "Cut 25bps", pool: 121_000, tone: "yes" },
+      { id: "cut50", label: "Cut 50bps+", pool: 44_000, tone: "grape" },
+      { id: "hike", label: "Hike", pool: 19_000, tone: "no" },
+    ],
+    closesAt: inDays(12),
+    createdAt: daysAgo(8),
+    creator: "chepkoech",
+    creatorFeeBps: 90,
+    platformFeeBps: PLATFORM_FEE_BPS,
+    seedLiquidity: 28_000,
+    status: "open",
+    aiReview: { verdict: "approved", note: "Bands are exhaustive and non-overlapping." },
+    resolutionCriteria: "Resolves to the band matching the published MPC statement's Central Bank Rate change.",
+    sources: ["CBK MPC statement"],
+    forecasters: 1_402,
+    history: makeHistory(202, 0.45, 40, 4),
+  },
+  {
+    id: "gor-vs-afc-correct-result",
+    question: "Gor Mahia vs AFC Leopards — what is the full-time result?",
+    shortTitle: "Gor vs AFC result",
+    category: "sports",
+    thumbnailEmoji: "🏟️",
+    kind: "sports",
+    sports: { home: "Gor Mahia", away: "AFC Leopards", league: "KPL", kickoff: inDays(2) },
+    outcomes: [
+      { id: "home", label: "Gor Mahia", pool: 268_000, tone: "yes" },
+      { id: "draw", label: "Draw", pool: 141_000, tone: "amber" },
+      { id: "away", label: "AFC Leopards", pool: 196_000, tone: "no" },
+    ],
+    closesAt: inDays(2),
+    createdAt: daysAgo(6),
+    creator: "otienoedge",
+    creatorFeeBps: 150,
+    platformFeeBps: PLATFORM_FEE_BPS,
+    seedLiquidity: 50_000,
+    status: "open",
+    aiReview: { verdict: "approved", note: "Three-way result market on a scheduled fixture. Approved." },
+    resolutionCriteria: "Resolves on the official full-time result after 90 minutes plus stoppage time.",
+    sources: ["FKF match centre"],
+    forecasters: 5_120,
+    history: makeHistory(203, 0.46, 40, 3),
+    featured: true,
+  },
+  {
+    id: "epl-top-scorer-race",
+    question: "Who finishes as the league's top scorer this season?",
+    shortTitle: "Top scorer race",
+    category: "sports",
+    thumbnailEmoji: "👟",
+    kind: "multi",
+    outcomes: [
+      { id: "a", label: "Omollo", pool: 96_000, tone: "yes" },
+      { id: "b", label: "Kiptoo", pool: 82_000, tone: "teal" },
+      { id: "c", label: "Barasa", pool: 61_000, tone: "grape" },
+      { id: "d", label: "Field", pool: 118_000, tone: "amber" },
+    ],
+    closesAt: inDays(70),
+    createdAt: daysAgo(30),
+    creator: "otienoedge",
+    creatorFeeBps: 150,
+    platformFeeBps: PLATFORM_FEE_BPS,
+    seedLiquidity: 32_000,
+    status: "open",
+    aiReview: { verdict: "fixed", note: "Added a Field outcome so the market is exhaustive." },
+    resolutionCriteria: "Resolves to the player credited with the most league goals in the official end-of-season table.",
+    sources: ["League official scorer table"],
+    forecasters: 1_930,
+    history: makeHistory(204, 0.3, 40, 4),
+  },
+  {
+    id: "safari-sevens-winner",
+    question: "Which side lifts the Safari Sevens?",
+    shortTitle: "Safari Sevens winner",
+    category: "sports",
+    thumbnailEmoji: "🏉",
+    kind: "multi",
+    outcomes: [
+      { id: "a", label: "Shujaa", pool: 74_000, tone: "yes" },
+      { id: "b", label: "Simbas", pool: 52_000, tone: "teal" },
+      { id: "c", label: "Visitors", pool: 68_000, tone: "grape" },
+    ],
+    closesAt: inDays(16),
+    createdAt: daysAgo(10),
+    creator: "mwendwa",
+    creatorFeeBps: 130,
+    platformFeeBps: PLATFORM_FEE_BPS,
+    seedLiquidity: 18_000,
+    status: "open",
+    aiReview: { verdict: "approved", note: "Tournament winner market with a clear trophy lift condition." },
+    resolutionCriteria: "Resolves to the side that wins the final. Abandoned tournament voids and refunds all stakes.",
+    sources: ["Tournament official results"],
+    forecasters: 640,
+    history: makeHistory(205, 0.35, 40, 3),
+  },
+  {
+    id: "nairobi-derby-resolved",
+    question: "Did the Nairobi derby end in a draw?",
+    shortTitle: "Derby ended a draw",
+    category: "sports",
+    thumbnailEmoji: "🤝",
+    outcomes: binary(88_000, 164_000),
+    closesAt: daysAgo(3),
+    createdAt: daysAgo(24),
+    creator: "otienoedge",
+    creatorFeeBps: 150,
+    platformFeeBps: PLATFORM_FEE_BPS,
+    seedLiquidity: 20_000,
+    status: "resolved",
+    aiReview: { verdict: "approved", note: "Single fixture, single official result." },
+    resolutionCriteria: "Resolves Yes if the official full-time score is level after 90 minutes plus stoppage.",
+    sources: ["FKF match centre"],
+    forecasters: 1_460,
+    history: makeHistory(206, 0.4),
+    resolved: {
+      outcomeId: "no",
+      resolvedAt: daysAgo(3),
+      rationale:
+        "Official full-time score 2-1. Two independent match reports agree. Resolved No, losing pool distributed to No stakes after fees.",
+    },
+  },
+];
+
+export const markets: Market[] = [...baseMarkets, ...multiMarkets];
+
 export function marketById(id: string) {
   return markets.find((m) => m.id === id);
 }
@@ -642,7 +820,7 @@ export const feeSchedule = [
   { label: "Dispute filing", value: "KSh 200", note: "Fully refunded when a dispute is upheld." },
   { label: "M-Pesa withdrawal", value: "KSh 25", note: "Rails cost. Top-ups are free." },
   { label: "Instant payout", value: "1.0%", note: "Optional. Skip the standard settlement window." },
-  { label: "Soko Pro", value: "KSh 499 / month", note: "Advanced analytics, copy-forecast, unlimited markets, halved platform fee." },
+  { label: "Polka Pro", value: "KSh 499 / month", note: "Advanced analytics, copy-forecast, unlimited markets, halved platform fee." },
 ];
 
 export { PLATFORM_FEE_BPS, DEFAULT_CREATOR_FEE_BPS };
