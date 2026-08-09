@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CreateRouteImport } from './routes/create'
+import { Route as DisputesRouteImport } from './routes/disputes'
 import { Route as InviteRouteImport } from './routes/invite'
 import { Route as LeaderboardRouteImport } from './routes/leaderboard'
 import { Route as PortfolioRouteImport } from './routes/portfolio'
@@ -25,6 +26,11 @@ const IndexRoute = IndexRouteImport.update({
 const CreateRoute = CreateRouteImport.update({
   id: '/create',
   path: '/create',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DisputesRoute = DisputesRouteImport.update({
+  id: '/disputes',
+  path: '/disputes',
   getParentRoute: () => rootRouteImport,
 } as any)
 const InviteRoute = InviteRouteImport.update({
@@ -56,6 +62,7 @@ const MarketMarketIdRoute = MarketMarketIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/create': typeof CreateRoute
+  '/disputes': typeof DisputesRoute
   '/invite': typeof InviteRoute
   '/leaderboard': typeof LeaderboardRoute
   '/portfolio': typeof PortfolioRoute
@@ -65,6 +72,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/create': typeof CreateRoute
+  '/disputes': typeof DisputesRoute
   '/invite': typeof InviteRoute
   '/leaderboard': typeof LeaderboardRoute
   '/portfolio': typeof PortfolioRoute
@@ -75,6 +83,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/create': typeof CreateRoute
+  '/disputes': typeof DisputesRoute
   '/invite': typeof InviteRoute
   '/leaderboard': typeof LeaderboardRoute
   '/portfolio': typeof PortfolioRoute
@@ -86,6 +95,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/create'
+    | '/disputes'
     | '/invite'
     | '/leaderboard'
     | '/portfolio'
@@ -95,6 +105,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/create'
+    | '/disputes'
     | '/invite'
     | '/leaderboard'
     | '/portfolio'
@@ -104,6 +115,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/create'
+    | '/disputes'
     | '/invite'
     | '/leaderboard'
     | '/portfolio'
@@ -114,6 +126,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CreateRoute: typeof CreateRoute
+  DisputesRoute: typeof DisputesRoute
   InviteRoute: typeof InviteRoute
   LeaderboardRoute: typeof LeaderboardRoute
   PortfolioRoute: typeof PortfolioRoute
@@ -135,6 +148,13 @@ declare module '@tanstack/react-router' {
       path: '/create'
       fullPath: '/create'
       preLoaderRoute: typeof CreateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/disputes': {
+      id: '/disputes'
+      path: '/disputes'
+      fullPath: '/disputes'
+      preLoaderRoute: typeof DisputesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/invite': {
@@ -178,6 +198,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CreateRoute: CreateRoute,
+  DisputesRoute: DisputesRoute,
   InviteRoute: InviteRoute,
   LeaderboardRoute: LeaderboardRoute,
   PortfolioRoute: PortfolioRoute,
