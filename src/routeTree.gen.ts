@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CreateRouteImport } from './routes/create'
+import { Route as InviteRouteImport } from './routes/invite'
 import { Route as LeaderboardRouteImport } from './routes/leaderboard'
 import { Route as PortfolioRouteImport } from './routes/portfolio'
 import { Route as WalletRouteImport } from './routes/wallet'
@@ -24,6 +25,11 @@ const IndexRoute = IndexRouteImport.update({
 const CreateRoute = CreateRouteImport.update({
   id: '/create',
   path: '/create',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InviteRoute = InviteRouteImport.update({
+  id: '/invite',
+  path: '/invite',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LeaderboardRoute = LeaderboardRouteImport.update({
@@ -50,6 +56,7 @@ const MarketMarketIdRoute = MarketMarketIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/create': typeof CreateRoute
+  '/invite': typeof InviteRoute
   '/leaderboard': typeof LeaderboardRoute
   '/portfolio': typeof PortfolioRoute
   '/wallet': typeof WalletRoute
@@ -58,6 +65,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/create': typeof CreateRoute
+  '/invite': typeof InviteRoute
   '/leaderboard': typeof LeaderboardRoute
   '/portfolio': typeof PortfolioRoute
   '/wallet': typeof WalletRoute
@@ -67,6 +75,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/create': typeof CreateRoute
+  '/invite': typeof InviteRoute
   '/leaderboard': typeof LeaderboardRoute
   '/portfolio': typeof PortfolioRoute
   '/wallet': typeof WalletRoute
@@ -77,6 +86,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/create'
+    | '/invite'
     | '/leaderboard'
     | '/portfolio'
     | '/wallet'
@@ -85,6 +95,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/create'
+    | '/invite'
     | '/leaderboard'
     | '/portfolio'
     | '/wallet'
@@ -93,6 +104,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/create'
+    | '/invite'
     | '/leaderboard'
     | '/portfolio'
     | '/wallet'
@@ -102,6 +114,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CreateRoute: typeof CreateRoute
+  InviteRoute: typeof InviteRoute
   LeaderboardRoute: typeof LeaderboardRoute
   PortfolioRoute: typeof PortfolioRoute
   WalletRoute: typeof WalletRoute
@@ -122,6 +135,13 @@ declare module '@tanstack/react-router' {
       path: '/create'
       fullPath: '/create'
       preLoaderRoute: typeof CreateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/invite': {
+      id: '/invite'
+      path: '/invite'
+      fullPath: '/invite'
+      preLoaderRoute: typeof InviteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/leaderboard': {
@@ -158,6 +178,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CreateRoute: CreateRoute,
+  InviteRoute: InviteRoute,
   LeaderboardRoute: LeaderboardRoute,
   PortfolioRoute: PortfolioRoute,
   WalletRoute: WalletRoute,
