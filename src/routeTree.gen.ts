@@ -15,6 +15,7 @@ import { Route as DisputesRouteImport } from './routes/disputes'
 import { Route as HowItWorksRouteImport } from './routes/how-it-works'
 import { Route as InviteRouteImport } from './routes/invite'
 import { Route as LeaderboardRouteImport } from './routes/leaderboard'
+import { Route as PayoutsRouteImport } from './routes/payouts'
 import { Route as PortfolioRouteImport } from './routes/portfolio'
 import { Route as WalletRouteImport } from './routes/wallet'
 import { Route as MarketMarketIdRouteImport } from './routes/market.$marketId'
@@ -49,6 +50,11 @@ const LeaderboardRoute = LeaderboardRouteImport.update({
   path: '/leaderboard',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PayoutsRoute = PayoutsRouteImport.update({
+  id: '/payouts',
+  path: '/payouts',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PortfolioRoute = PortfolioRouteImport.update({
   id: '/portfolio',
   path: '/portfolio',
@@ -72,6 +78,7 @@ export interface FileRoutesByFullPath {
   '/how-it-works': typeof HowItWorksRoute
   '/invite': typeof InviteRoute
   '/leaderboard': typeof LeaderboardRoute
+  '/payouts': typeof PayoutsRoute
   '/portfolio': typeof PortfolioRoute
   '/wallet': typeof WalletRoute
   '/market/$marketId': typeof MarketMarketIdRoute
@@ -83,6 +90,7 @@ export interface FileRoutesByTo {
   '/how-it-works': typeof HowItWorksRoute
   '/invite': typeof InviteRoute
   '/leaderboard': typeof LeaderboardRoute
+  '/payouts': typeof PayoutsRoute
   '/portfolio': typeof PortfolioRoute
   '/wallet': typeof WalletRoute
   '/market/$marketId': typeof MarketMarketIdRoute
@@ -95,6 +103,7 @@ export interface FileRoutesById {
   '/how-it-works': typeof HowItWorksRoute
   '/invite': typeof InviteRoute
   '/leaderboard': typeof LeaderboardRoute
+  '/payouts': typeof PayoutsRoute
   '/portfolio': typeof PortfolioRoute
   '/wallet': typeof WalletRoute
   '/market/$marketId': typeof MarketMarketIdRoute
@@ -108,6 +117,7 @@ export interface FileRouteTypes {
     | '/how-it-works'
     | '/invite'
     | '/leaderboard'
+    | '/payouts'
     | '/portfolio'
     | '/wallet'
     | '/market/$marketId'
@@ -119,6 +129,7 @@ export interface FileRouteTypes {
     | '/how-it-works'
     | '/invite'
     | '/leaderboard'
+    | '/payouts'
     | '/portfolio'
     | '/wallet'
     | '/market/$marketId'
@@ -130,6 +141,7 @@ export interface FileRouteTypes {
     | '/how-it-works'
     | '/invite'
     | '/leaderboard'
+    | '/payouts'
     | '/portfolio'
     | '/wallet'
     | '/market/$marketId'
@@ -142,6 +154,7 @@ export interface RootRouteChildren {
   HowItWorksRoute: typeof HowItWorksRoute
   InviteRoute: typeof InviteRoute
   LeaderboardRoute: typeof LeaderboardRoute
+  PayoutsRoute: typeof PayoutsRoute
   PortfolioRoute: typeof PortfolioRoute
   WalletRoute: typeof WalletRoute
   MarketMarketIdRoute: typeof MarketMarketIdRoute
@@ -191,6 +204,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LeaderboardRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/payouts': {
+      id: '/payouts'
+      path: '/payouts'
+      fullPath: '/payouts'
+      preLoaderRoute: typeof PayoutsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/portfolio': {
       id: '/portfolio'
       path: '/portfolio'
@@ -222,6 +242,7 @@ const rootRouteChildren: RootRouteChildren = {
   HowItWorksRoute: HowItWorksRoute,
   InviteRoute: InviteRoute,
   LeaderboardRoute: LeaderboardRoute,
+  PayoutsRoute: PayoutsRoute,
   PortfolioRoute: PortfolioRoute,
   WalletRoute: WalletRoute,
   MarketMarketIdRoute: MarketMarketIdRoute,
