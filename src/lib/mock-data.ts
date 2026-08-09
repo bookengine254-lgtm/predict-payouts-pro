@@ -172,26 +172,35 @@ function seeded(seed: number) {
   };
 }
 
-function makeHistory(seed: number, start: number, points = 40): { t: string; values: number[] }[] {
+/**
+ * Fixed clock anchor. Mock timestamps are derived from a constant so the server
+ * and the client render identical relative labels (no hydration mismatch).
+ */
+export const NOW = Date.parse("2026-08-09T06:00:00.000Z");
+
+function makeHistory(seed: number, start: number, points = 40, outcomeCount = 2): { t: string; values: number[] }[] {
   const rand = seeded(seed);
   const out: { t: string; values: number[] }[] = [];
   let p = start;
-  const now = Date.now();
   for (let i = points - 1; i >= 0; i--) {
     p = Math.min(0.94, Math.max(0.06, p + (rand() - 0.5) * 0.06));
-    out.push({
-      t: new Date(now - i * 6 * 3600_000).toISOString(),
-      values: [Number(p.toFixed(4)), Number((1 - p).toFixed(4))],
-    });
+    const values = [Number(p.toFixed(4))];
+    let remaining = 1 - p;
+    for (let k = 1; k < outcomeCount; k++) {
+      const share = k === outcomeCount - 1 ? remaining : remaining * (0.35 + rand() * 0.3);
+      values.push(Number(Math.max(0.01, share).toFixed(4)));
+      remaining = Math.max(0.01, remaining - share);
+    }
+    out.push({ t: new Date(NOW - i * 6 * 3600_000).toISOString(), values });
   }
   return out;
 }
 
 function inDays(days: number) {
-  return new Date(Date.now() + days * 86_400_000).toISOString();
+  return new Date(NOW + days * 86_400_000).toISOString();
 }
 function daysAgo(days: number) {
-  return new Date(Date.now() - days * 86_400_000).toISOString();
+  return new Date(NOW - days * 86_400_000).toISOString();
 }
 
 function binary(yes: number, no: number): Outcome[] {
@@ -201,7 +210,7 @@ function binary(yes: number, no: number): Outcome[] {
   ];
 }
 
-export const markets: Market[] = [
+const baseMarkets: Market[] = [
   {
     id: "nairobi-expressway-toll",
     question: "Will the Nairobi Expressway toll be raised before 1 October?",
@@ -642,7 +651,7 @@ export const feeSchedule = [
   { label: "Dispute filing", value: "KSh 200", note: "Fully refunded when a dispute is upheld." },
   { label: "M-Pesa withdrawal", value: "KSh 25", note: "Rails cost. Top-ups are free." },
   { label: "Instant payout", value: "1.0%", note: "Optional. Skip the standard settlement window." },
-  { label: "Soko Pro", value: "KSh 499 / month", note: "Advanced analytics, copy-forecast, unlimited markets, halved platform fee." },
+  { label: "Polka Pro", value: "KSh 499 / month", note: "Advanced analytics, copy-forecast, unlimited markets, halved platform fee." },
 ];
 
 export { PLATFORM_FEE_BPS, DEFAULT_CREATOR_FEE_BPS };
