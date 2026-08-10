@@ -113,11 +113,13 @@ function TopBar() {
           </button>
           <Link
             to="/wallet"
-            className="flex items-center gap-1.5 rounded-lg bg-primary px-2.5 py-1.5 text-xs font-semibold text-primary-foreground transition-opacity hover:opacity-90"
+            search={{ topup: false }}
+            className="flex items-center gap-1.5 rounded-lg bg-primary px-2.5 py-1.5 text-xs font-semibold text-primary-foreground bevel press transition-opacity hover:opacity-90"
           >
             <Wallet className="size-3.5" />
             <span className="tabular">{formatKsh(currentUser.balance, { compact: true })}</span>
           </Link>
+
           {/* Mobile: one-tap green top-up sitting right beside the wallet */}
           <Link
             to="/wallet"

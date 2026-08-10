@@ -13,7 +13,7 @@ type BannerProps = {
   image: string;
   tone: "invite" | "learn" | "payout";
   className?: string | undefined;
-  to: LinkProps["to"];
+  to: NonNullable<LinkProps["to"]>;
 };
 
 const toneClasses: Record<BannerProps["tone"], string> = {
@@ -95,7 +95,7 @@ export function PayoutBanner({ className }: { className?: string | undefined }) 
       tone="payout"
       eyebrow="Parimutuel payouts"
       title="The pool pays you, not a bookmaker"
-      body="Everyone's stake goes into one pool. Correct forecasts split it. Soko never takes a side."
+      body="Everyone's stake goes into one pool. Correct forecasts split it. Polka never takes a side."
       cta="See the maths"
       image={bannerPayout}
       className={className}
