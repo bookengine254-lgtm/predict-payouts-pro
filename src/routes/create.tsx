@@ -49,6 +49,8 @@ function CreateMarket() {
   const [category, setCategory] = useState<CategoryId>("politics");
   const [criteria, setCriteria] = useState("");
   const [emoji, setEmoji] = useState("📈");
+  const [thumb, setThumb] = useState<string | null>(null);
+
   const [choices, setChoices] = useState(["", "", ""]);
   const [home, setHome] = useState("");
   const [away, setAway] = useState("");
@@ -144,17 +146,35 @@ function CreateMarket() {
 
               <Field label="Thumbnail">
                 <div className="flex items-center gap-3">
-                  <span className="grid size-14 shrink-0 place-items-center rounded-xl border border-border bg-secondary text-2xl">
-                    {emoji}
+                  <span className="grid size-14 shrink-0 place-items-center overflow-hidden rounded-xl border border-border bg-secondary text-2xl">
+                    {thumb ? <img src={thumb} alt="" className="size-full object-cover" /> : emoji}
                   </span>
                   <div className="min-w-0 flex-1">
-                    <button
-                      type="button"
-                      onClick={() => toast.success("Image picker", { description: "Upload lands with the backend." })}
-                      className="flex items-center gap-2 rounded-xl border border-border px-3 py-2 text-xs font-semibold transition-colors hover:bg-accent"
-                    >
-                      <ImagePlus className="size-3.5" /> Upload image
-                    </button>
+                    <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-border px-3 py-2 text-xs font-semibold press hover:bg-accent">
+                      <ImagePlus className="size-3.5" /> {thumb ? "Replace image" : "Upload image"}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          const url = URL.createObjectURL(file);
+                          setThumb(url);
+                          toast.success("Thumbnail added", { description: file.name });
+                        }}
+                      />
+                    </label>
+                    {thumb && (
+                      <button
+                        type="button"
+                        onClick={() => setThumb(null)}
+                        className="ml-2 text-xs font-semibold text-no"
+                      >
+                        Remove
+                      </button>
+                    )}
+
                     <div className="mt-2 flex flex-wrap gap-1">
                       {["📈", "⚽", "🏛️", "₿", "🌧️", "🎤", "📡", "🏟️"].map((e) => (
                         <button
