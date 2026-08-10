@@ -237,13 +237,15 @@ function MarketDetail() {
                 (myPositions.length ? (
                   <ul className="space-y-2">
                     {myPositions.map((p) => (
-                      <li key={p.id} className="rounded-xl bg-secondary/60 p-3 text-sm">
+                      <li key={p.outcomeId} className="rounded-xl bg-secondary/60 p-3 text-sm">
                         <div className="flex items-center justify-between gap-2">
-                          <span className="font-semibold">{p.outcomeLabel}</span>
+                          <span className="font-semibold">
+                            {market.outcomes.find((o) => o.id === p.outcomeId)?.label ?? p.outcomeId}
+                          </span>
                           <span className="tabular">{formatKsh(p.stake)}</span>
                         </div>
                         <p className="mt-1 text-xs text-muted-foreground tabular">
-                          Projected return {formatKsh(p.projectedReturn)} · entry {formatPct(p.entryProbability)}
+                          Entry {formatPct(p.avgProbability)} · status {p.status}
                         </p>
                       </li>
                     ))}
@@ -256,9 +258,13 @@ function MarketDetail() {
                 (myPositions.length ? (
                   <ul className="space-y-2 text-sm">
                     {myPositions.map((p) => (
-                      <li key={p.id} className="flex items-center justify-between gap-2 rounded-xl bg-secondary/60 p-3">
+                      <li
+                        key={p.outcomeId}
+                        className="flex items-center justify-between gap-2 rounded-xl bg-secondary/60 p-3"
+                      >
                         <span className="min-w-0 truncate">
-                          {p.outcomeLabel} · <span className="text-muted-foreground">{p.status}</span>
+                          {market.outcomes.find((o) => o.id === p.outcomeId)?.label ?? p.outcomeId} ·{" "}
+                          <span className="text-muted-foreground">{p.status}</span>
                         </span>
                         <span className="shrink-0 tabular font-semibold">{formatKsh(p.stake)}</span>
                       </li>
@@ -267,6 +273,7 @@ function MarketDetail() {
                 ) : (
                   <Empty text="Your forecast history on this market will show up here." />
                 ))}
+
             </div>
           </section>
 
