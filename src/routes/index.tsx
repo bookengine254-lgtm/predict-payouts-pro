@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Flame, Clock, Sparkles, TrendingUp } from "lucide-react";
+import { BadgeCheck, Flame, Clock, Plus, Sparkles, TrendingUp } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { MarketCard } from "@/components/market-card";
 import { InviteBanner, LearnBanner, PayoutBanner } from "@/components/banners";
@@ -61,7 +61,9 @@ function Discover() {
   }, [category, sort, open]);
 
   const featured = open.filter((m) => m.featured);
+  const resolved = markets.filter((m) => m.status === "resolved" || m.status === "disputed").slice(0, 4);
   const volume = markets.reduce((sum, m) => sum + totalPool(m), 0);
+
 
   return (
     <AppShell>
