@@ -160,12 +160,54 @@ function Discover() {
         </div>
       </section>
 
+      {resolved.length > 0 && (
+        <section className="mt-8">
+          <SectionHead icon={BadgeCheck} title="Recently resolved" hint="Outcome summary and criteria used" />
+          <div className="mt-3 grid gap-3 lg:grid-cols-2">
+            {resolved.map((m) => {
+              const won = m.outcomes.find((o) => o.id === m.resolved?.outcomeId);
+              return (
+                <Link
+                  key={m.id}
+                  to="/market/$marketId"
+                  params={{ marketId: m.id }}
+                  className="rounded-2xl border border-border bg-card p-4 bevel press hover:bg-accent/30"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <h3 className="min-w-0 text-sm leading-snug font-semibold">{m.question}</h3>
+                    <span className={cn("shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold", toneSoft["yes"])}>
+                      {won?.label ?? "Resolved"}
+                    </span>
+                  </div>
+                  <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
+                    {m.resolved?.rationale ?? m.resolutionCriteria}
+                  </p>
+                  <p className="mt-2 text-xs text-muted-foreground tabular">
+                    Pool {formatKsh(totalPool(m), { compact: true })} · sources {m.sources.join(" · ")}
+                  </p>
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
       <div className="mt-6">
         <LearnBanner />
       </div>
+
+      {/* Thumb-sized create button, Twitter-style */}
+      <Link
+        to="/create"
+        aria-label="Create a market"
+        className="fixed bottom-[calc(4.75rem+env(safe-area-inset-bottom))] left-4 z-40 grid size-14 place-items-center rounded-full bg-primary text-primary-foreground bevel-raised press lg:hidden"
+      >
+        <Plus className="size-7" />
+      </Link>
     </AppShell>
   );
 }
+
 
 function Chip({
   label,
