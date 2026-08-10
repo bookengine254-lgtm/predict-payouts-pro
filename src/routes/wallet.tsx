@@ -20,9 +20,9 @@ import { formatKsh } from "@/lib/parimutuel";
 import { currentUser, transactions, type Transaction } from "@/lib/mock-data";
 
 export const Route = createFileRoute("/wallet")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    topup: search["topup"] === true || search["topup"] === "true",
-  }),
+  validateSearch: (search: Record<string, unknown>): { topup?: boolean } =>
+    search["topup"] === true || search["topup"] === "true" ? { topup: true } : {},
+
   head: () => ({
     meta: [
       { title: "Wallet & M-Pesa Top-Up — Polka" },
