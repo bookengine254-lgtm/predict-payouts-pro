@@ -1,0 +1,183 @@
+import { useMemo, useState } from "react";
+import {
+  CartesianGrid,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip as ReTooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+import { toneStroke } from "./tone";
+import { cn } from "@/lib/utils";
+import type { Market } from "@/lib/mock-data";
+
+const RANGES = [
+  ["1D", 4],
+  ["1W", 28],
+  ["1M", 40],
+  ["All", 40],
+] as const;
+
+type RangeKey = (typeof RANGES)[number][0];
+
+/**
+ * Odds trend. Every outcome is a real series derived from the market history,
+ * plotted as a percentage. Toggle a single outcome to isolate its curve.
+ */
+export function OddsChart({ market }: { market: Market }) {
+  const [range, setRange] = useState<RangeKey>("1W");
+  const [focus, setFocus] = useState<string | "all">("all");
+
+  const points = RANGES.find(([r]) => r === range)?.[1] ?? 40;
+
+  const data = useMemo(() => {
+    const slice = market.history.slice(-points);
+    return slice.map((h) => {
+      const row: Record<string, string | number> = {
+        t: new Date(h.t).toLocaleDateString("en-KE", { month: "short", day: "numeric" }),
+      };
+      market.outcomes.forEach((o, i) => {
+        row[o.id] = Number(((h.values[i] ?? 0) * 100).toFixed(1));
+      });
+      return row;
+    });
+  }, [market, points]);
+
+  const visible = market.outcomes.filter((o) => focus === "all" || o.id === focus);
+
+  // Scale the axis to the band the data actually occupies, with a little air.
+  const [lo, hi] = useMemo(() => {
+    const all = data.flatMap((row) => visible.map((o) => Number(row[o.id] ?? 0)));
+    if (all.length === 0) return [0, 100];
+    const min = Math.max(0, Math.floor((Math.min(...all) - 6) / 5) * 5);
+    const max = Math.min(100, Math.ceil((Math.max(...all) + 6) / 5) * 5);
+    return [min, Math.max(max, min + 20)];
+  }, [data, visible]);
+
+  return (
+    <section className="rounded-2xl border border-border bg-card p-4 bevel">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h2 className="text-base font-semibold">Odds trend</h2>
+        <div className="flex gap-1 rounded-xl bg-secondary p-0.5">
+          {RANGES.map(([r]) => (
+            <button
+              key={r}
+              type="button"
+              onClick={() => setRange(r)}
+              className={cn(
+                "rounded-lg px-2.5 py-1 text-xs font-semibold press",
+                range === r ? "bg-card text-foreground bevel" : "text-muted-foreground",
+              )}
+            >
+              {r}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-3 -mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1 hide-scrollbar">
+        <button
+          type="button"
+          onClick={() => setFocus("all")}
+          className={cn(
+            "shrink-0 rounded-full border px-3 py-1 text-xs font-semibold press",
+            focus === "all" ? "border-primary bg-primary text-primary-foreground" : "border-border text-muted-foreground",
+          )}
+        >
+          All outcomes
+        </button>
+        {market.outcomes.map((o) => (
+          <button
+            key={o.id}
+            type="button"
+            onClick={() => setFocus(o.id)}
+            className={cn(
+              "flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold press",
+              focus === o.id ? "border-current" : "border-border text-muted-foreground",
+            )}
+            style={focus === o.id ? { color: toneStroke[o.tone] } : undefined}
+          >
+            <span className="size-2 rounded-full" style={{ background: toneStroke[o.tone] }} />
+            {o.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="mt-3 h-64">
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={data} margin={{ top: 8, right: 8, left: -14, bottom: 0 }}>
+            <CartesianGrid stroke="var(--border)" vertical={false} />
+            <XAxis
+              dataKey="t"
+              tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
+              tickLine={false}
+              axisLine={false}
+              minTickGap={28}
+            />
+            <YAxis
+              domain={[lo, hi]}
+              tickCount={6}
+              tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
+              tickFormatter={(v: number) => `${v}%`}
+              tickLine={false}
+              axisLine={false}
+              width={40}
+            />
+            <ReTooltip
+              contentStyle={{
+                background: "var(--popover)",
+                border: "1px solid var(--border)",
+                borderRadius: 12,
+                fontSize: 12,
+              }}
+              formatter={(v, name) => [
+                `${v}%`,
+                market.outcomes.find((o) => o.id === name)?.label ?? String(name),
+              ]}
+            />
+            {visible.map((o) => (
+              <Line
+                key={o.id}
+                type="monotone"
+                dataKey={o.id}
+                stroke={toneStroke[o.tone]}
+                strokeWidth={2.2}
+                dot={false}
+                activeDot={{ r: 3.5 }}
+                animationDuration={550}
+              />
+            ))}
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+    </section>
+  );
+}
+
+/** Poll-style split: one labelled bar per outcome with its live percentage. */
+export function OutcomePoll({ market, probs }: { market: Market; probs: number[] }) {
+  return (
+    <ul className="space-y-2">
+      {market.outcomes.map((o, i) => {
+        const pct = (probs[i] ?? 0) * 100;
+        return (
+          <li key={o.id}>
+            <div className="flex items-baseline justify-between gap-2 text-sm">
+              <span className="min-w-0 truncate font-medium">{o.label}</span>
+              <span className="shrink-0 font-display tabular" style={{ color: toneStroke[o.tone] }}>
+                {pct.toFixed(1)}%
+              </span>
+            </div>
+            <div className="mt-1 h-2.5 overflow-hidden rounded-full bg-secondary">
+              <span
+                className="block h-full rounded-full transition-[width] duration-700"
+                style={{ width: `${pct}%`, background: toneStroke[o.tone] }}
+              />
+            </div>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}

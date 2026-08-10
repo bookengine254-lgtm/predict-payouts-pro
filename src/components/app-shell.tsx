@@ -113,7 +113,7 @@ function TopBar() {
           </button>
           <Link
             to="/wallet"
-            search={{ topup: false }}
+            search={{}}
             className="flex items-center gap-1.5 rounded-lg bg-primary px-2.5 py-1.5 text-xs font-semibold text-primary-foreground bevel press transition-opacity hover:opacity-90"
           >
             <Wallet className="size-3.5" />
