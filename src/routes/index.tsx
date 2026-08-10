@@ -12,13 +12,13 @@ import { toneSoft } from "@/components/tone";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Soko — Skill-Based Forecasting Markets, Paid via M-Pesa" },
+      { title: "Polka — Skill-Based Forecasting Markets, Paid via M-Pesa" },
       {
         name: "description",
         content:
           "Forecast Kenyan politics, sport, crypto and weather. Stake into shared parimutuel pools, top up with M-Pesa, and get paid for being right.",
       },
-      { property: "og:title", content: "Soko — Skill-Based Forecasting Markets" },
+      { property: "og:title", content: "Polka — Skill-Based Forecasting Markets" },
       {
         property: "og:description",
         content: "Shared pools, no bookmaker. Forecast the world, split the pool, cash out to M-Pesa.",
@@ -34,8 +34,9 @@ export const Route = createFileRoute("/")({
         children: JSON.stringify({
           "@context": "https://schema.org",
           "@type": "WebSite",
-          name: "Soko",
+          name: "Polka",
           description: "Skill-based forecasting markets with parimutuel payouts and M-Pesa settlement.",
+
         }),
       },
     ],
