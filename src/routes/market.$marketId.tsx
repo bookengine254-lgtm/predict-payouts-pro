@@ -1,20 +1,11 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
-import {
-  Area,
-  AreaChart,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip as ReTooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
+import { useState } from "react";
 import {
   BadgeCheck,
   Bot,
   Clock,
   Gavel,
-  Info,
+  Megaphone,
   Share2,
   ShieldCheck,
   TrendingDown,
@@ -25,14 +16,17 @@ import { toast } from "sonner";
 import { AppShell } from "@/components/app-shell";
 import { MarketThumb } from "@/components/market-thumb";
 import { MarketCard } from "@/components/market-card";
+import { OddsChart, OutcomePoll } from "@/components/odds-chart";
+import { ForecastDock } from "@/components/forecast-dock";
 import { toneSoft, toneText } from "@/components/tone";
 import { cn } from "@/lib/utils";
-import { formatKsh, formatPct, quotePayout, timeLeft } from "@/lib/parimutuel";
+import { formatKsh, formatPct, timeLeft } from "@/lib/parimutuel";
 import {
   categoryOf,
   marketById,
   markets,
   people,
+  positions,
   probabilities,
   totalPool,
   trendDelta,
@@ -47,11 +41,11 @@ export const Route = createFileRoute("/market/$marketId")({
   },
   head: ({ loaderData, params }) => {
     if (!loaderData) {
-      return { meta: [{ title: "Market not found — Soko" }, { name: "robots", content: "noindex" }] };
+      return { meta: [{ title: "Market not found — Polka" }, { name: "robots", content: "noindex" }] };
     }
     const { market } = loaderData;
     const probs = probabilities(market);
-    const title = `${market.question} — ${formatPct(probs[0] ?? 0)} Yes | Soko`;
+    const title = `${market.question} — ${formatPct(probs[0] ?? 0)} ${market.outcomes[0]!.label} | Polka`;
     const description = `${formatKsh(totalPool(market), { compact: true })} in the pool, ${market.forecasters.toLocaleString("en-KE")} forecasters. ${market.resolutionCriteria}`;
     return {
       meta: [
@@ -84,48 +78,19 @@ export const Route = createFileRoute("/market/$marketId")({
   ),
 });
 
-const RANGES = [
-  ["1D", 4],
-  ["1W", 12],
-  ["1M", 28],
-  ["All", 40],
-] as const;
+const TABS = ["Description", "My position", "My forecasts"] as const;
 
 function MarketDetail() {
   const { market } = Route.useLoaderData() as { market: Market };
-  const [range, setRange] = useState<(typeof RANGES)[number][0]>("1W");
-  const [outcomeId, setOutcomeId] = useState(market.outcomes[0]!.id);
-  const [stake, setStake] = useState(200);
+  const [tab, setTab] = useState<(typeof TABS)[number]>("Description");
 
   const probs = probabilities(market);
   const pool = totalPool(market);
   const delta = trendDelta(market);
   const cat = categoryOf(market.category);
   const creator = people.find((p) => p.handle === market.creator);
-  const selected = market.outcomes.find((o) => o.id === outcomeId)!;
-  const selectedIndex = market.outcomes.findIndex((o) => o.id === outcomeId);
-
-  const quote = useMemo(
-    () =>
-      quotePayout({
-        stake,
-        outcomePool: selected.pool,
-        totalPool: pool,
-        platformFeeBps: market.platformFeeBps,
-        creatorFeeBps: market.creatorFeeBps,
-      }),
-    [stake, selected.pool, pool, market.platformFeeBps, market.creatorFeeBps],
-  );
-
-  const points = RANGES.find(([r]) => r === range)?.[1] ?? 40;
-  const chartData = market.history.slice(-points).map((h) => ({
-    t: new Date(h.t).toLocaleDateString("en-KE", { month: "short", day: "numeric" }),
-    yes: Math.round((h.values[0] ?? 0) * 100),
-    no: Math.round((h.values[1] ?? 0) * 100),
-  }));
-
+  const myPositions = positions.filter((p) => p.marketId === market.id);
   const related = markets.filter((m) => m.category === market.category && m.id !== market.id).slice(0, 3);
-  const closed = market.status !== "open";
 
   return (
     <AppShell>
@@ -137,20 +102,20 @@ function MarketDetail() {
         <span className={toneText[cat.tone]}>{cat.label}</span>
       </nav>
 
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
+      <div className="grid gap-5 pb-32 lg:grid-cols-[minmax(0,1fr)_360px] lg:pb-0">
         <div className="min-w-0 space-y-4">
-          <header className="rounded-2xl border border-border bg-card p-4 shadow-card sm:p-5">
+          <header className="rounded-2xl border border-border bg-card p-4 bevel sm:p-5">
             <div className="grid grid-cols-[auto_minmax(0,1fr)] gap-3">
               <MarketThumb market={market} size="lg" />
               <div className="min-w-0">
-                <h1 className="text-lg leading-snug font-semibold text-foreground sm:text-2xl">{market.question}</h1>
-                <div className="mt-2 flex flex-wrap items-center gap-2 text-[0.7rem]">
+                <h1 className="text-xl leading-snug font-semibold text-foreground sm:text-2xl">{market.question}</h1>
+                <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
                   <span className={cn("rounded-full px-2 py-0.5 font-semibold", toneSoft[cat.tone])}>{cat.label}</span>
                   <span className="flex items-center gap-1 text-muted-foreground tabular">
-                    <Clock className="size-3" /> {timeLeft(market.closesAt)}
+                    <Clock className="size-3.5" /> {timeLeft(market.closesAt)}
                   </span>
                   <span className="flex items-center gap-1 text-muted-foreground tabular">
-                    <Users className="size-3" /> {market.forecasters.toLocaleString("en-KE")} forecasters
+                    <Users className="size-3.5" /> {market.forecasters.toLocaleString("en-KE")} forecasters
                   </span>
                   <StatusPill status={market.status} />
                 </div>
@@ -158,16 +123,14 @@ function MarketDetail() {
             </div>
 
             <div className="mt-4 grid grid-cols-3 gap-3">
+              <Stat label="Pool" value={formatKsh(pool, { compact: true })} />
+              <Stat
+                label={`${market.outcomes[0]!.label} implied`}
+                value={formatPct(probs[0] ?? 0, 1)}
+                className="text-yes"
+              />
               <div>
-                <p className="text-[0.68rem] text-muted-foreground">Pool</p>
-                <p className="font-display text-xl tabular">{formatKsh(pool, { compact: true })}</p>
-              </div>
-              <div>
-                <p className="text-[0.68rem] text-muted-foreground">{market.outcomes[0]!.label} implied</p>
-                <p className="font-display text-xl tabular text-yes">{formatPct(probs[0] ?? 0, 1)}</p>
-              </div>
-              <div>
-                <p className="text-[0.68rem] text-muted-foreground">24h move</p>
+                <p className="text-xs text-muted-foreground">24h move</p>
                 <p
                   className={cn(
                     "flex items-center gap-1 font-display text-xl tabular",
@@ -180,118 +143,147 @@ function MarketDetail() {
               </div>
             </div>
 
-            <div className="mt-4 flex h-2 overflow-hidden rounded-full">
-              {market.outcomes.map((o, i) => (
-                <span
-                  key={o.id}
-                  className={o.tone === "yes" ? "bg-yes" : "bg-no"}
-                  style={{ width: `${(probs[i] ?? 0) * 100}%` }}
-                />
-              ))}
-            </div>
-            <div className="mt-1.5 flex justify-between text-[0.7rem] text-muted-foreground tabular">
-              {market.outcomes.map((o, i) => (
-                <span key={o.id}>
-                  {o.label} · {formatKsh(o.pool, { compact: true })} ({formatPct(probs[i] ?? 0)})
-                </span>
-              ))}
+            <div className="mt-4">
+              <OutcomePoll market={market} probs={probs} />
             </div>
           </header>
 
-          <section className="rounded-2xl border border-border bg-card p-4 shadow-card">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <h2 className="text-sm font-semibold">Odds trend</h2>
-              <div className="flex gap-1 rounded-lg bg-secondary p-0.5">
-                {RANGES.map(([r]) => (
-                  <button
-                    key={r}
-                    type="button"
-                    onClick={() => setRange(r)}
-                    className={cn(
-                      "rounded-md px-2.5 py-1 text-[0.7rem] font-semibold transition-colors",
-                      range === r ? "bg-card text-foreground shadow-card" : "text-muted-foreground",
-                    )}
-                  >
-                    {r}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="mt-3 h-56">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={chartData} margin={{ top: 6, right: 6, left: -18, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="yesFill" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="var(--yes)" stopOpacity={0.28} />
-                      <stop offset="100%" stopColor="var(--yes)" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid stroke="var(--border)" vertical={false} />
-                  <XAxis dataKey="t" tick={{ fontSize: 10, fill: "var(--muted-foreground)" }} tickLine={false} axisLine={false} minTickGap={24} />
-                  <YAxis domain={[0, 100]} tick={{ fontSize: 10, fill: "var(--muted-foreground)" }} tickLine={false} axisLine={false} width={34} unit="%" />
-                  <ReTooltip
-                    contentStyle={{
-                      background: "var(--popover)",
-                      border: "1px solid var(--border)",
-                      borderRadius: 12,
-                      fontSize: 12,
-                    }}
-                    formatter={(v) => [`${v}%`, "Yes"]}
-                  />
-                  <Area type="monotone" dataKey="yes" stroke="var(--yes)" strokeWidth={2} fill="url(#yesFill)" />
-                  <Area type="monotone" dataKey="no" stroke="var(--no)" strokeWidth={1} fillOpacity={0} strokeDasharray="3 3" />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </section>
-
-          <section className="rounded-2xl border border-border bg-card p-4 shadow-card">
-            <h2 className="flex items-center gap-2 text-sm font-semibold">
-              <ShieldCheck className="size-4 text-primary" /> Resolution criteria
-            </h2>
-            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{market.resolutionCriteria}</p>
-            <p className="mt-3 text-xs text-muted-foreground">
-              Sources: {market.sources.join(" · ")}
-            </p>
-            <div className={cn("mt-3 flex items-start gap-2 rounded-xl p-3 text-xs leading-relaxed", toneSoft["teal"])}>
-              <Bot className="mt-0.5 size-4 shrink-0" />
-              <span>
-                <strong className="font-semibold">
-                  AI review · {market.aiReview.verdict === "fixed" ? "approved with edits" : market.aiReview.verdict}
-                </strong>
-                <br />
-                {market.aiReview.note}
+          {/* Share-to-earn */}
+          <button
+            type="button"
+            onClick={() =>
+              toast.success("Invite link copied", {
+                description: "KSh 500 lands in your wallet once 10 invited forecasters deposit.",
+              })
+            }
+            className="flex w-full items-center gap-3 rounded-2xl border border-border bg-grape-soft p-4 text-left bevel press"
+          >
+            <span className="grid size-10 shrink-0 place-items-center rounded-full bg-grape/15 text-grape">
+              <Megaphone className="size-5" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-sm leading-tight font-semibold">
+                Share this market to 10 new depositing players and make KSh 500
               </span>
+              <span className="block text-xs text-foreground/70">
+                Paid as commission once your invited forecasters top up. Track it in Rewards.
+              </span>
+            </span>
+            <Share2 className="size-4 shrink-0 text-grape" />
+          </button>
+
+          <OddsChart market={market} />
+
+          {/* Tabs */}
+          <section className="rounded-2xl border border-border bg-card p-4 bevel">
+            <div className="-mx-1 flex gap-1 overflow-x-auto px-1 hide-scrollbar">
+              {TABS.map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => setTab(t)}
+                  className={cn(
+                    "shrink-0 rounded-xl px-3 py-2 text-sm font-semibold press",
+                    tab === t ? "bg-secondary text-foreground bevel" : "text-muted-foreground",
+                  )}
+                >
+                  {t}
+                </button>
+              ))}
             </div>
-            {market.resolved && (
-              <div className={cn("mt-3 flex items-start gap-2 rounded-xl p-3 text-xs leading-relaxed", toneSoft["yes"])}>
-                <BadgeCheck className="mt-0.5 size-4 shrink-0" />
-                <span>
-                  <strong className="font-semibold">
-                    Resolved {market.outcomes.find((o) => o.id === market.resolved!.outcomeId)?.label}
-                  </strong>
-                  <br />
-                  {market.resolved.rationale}
-                </span>
-              </div>
-            )}
-            {market.status === "disputed" && (
-              <Link
-                to="/disputes"
-                className="mt-3 flex items-center gap-2 rounded-xl bg-amber-soft p-3 text-xs font-semibold text-amber"
-              >
-                <Gavel className="size-4" /> A dispute is under review on this resolution — see the case file
-              </Link>
-            )}
+
+            <div className="mt-3 rise-in">
+              {tab === "Description" && (
+                <div className="space-y-3">
+                  <h2 className="flex items-center gap-2 text-sm font-semibold">
+                    <ShieldCheck className="size-4 text-primary" /> Resolution criteria
+                  </h2>
+                  <p className="text-sm leading-relaxed text-muted-foreground">{market.resolutionCriteria}</p>
+                  <p className="text-xs text-muted-foreground">Sources: {market.sources.join(" · ")}</p>
+                  <div className={cn("flex items-start gap-2 rounded-xl p-3 text-xs leading-relaxed", toneSoft["teal"])}>
+                    <Bot className="mt-0.5 size-4 shrink-0" />
+                    <span>
+                      <strong className="font-semibold">
+                        AI review · {market.aiReview.verdict === "fixed" ? "approved with edits" : market.aiReview.verdict}
+                      </strong>
+                      <br />
+                      {market.aiReview.note}
+                    </span>
+                  </div>
+                  {market.resolved && (
+                    <div className={cn("flex items-start gap-2 rounded-xl p-3 text-xs leading-relaxed", toneSoft["yes"])}>
+                      <BadgeCheck className="mt-0.5 size-4 shrink-0" />
+                      <span>
+                        <strong className="font-semibold">
+                          Resolved {market.outcomes.find((o) => o.id === market.resolved!.outcomeId)?.label}
+                        </strong>
+                        <br />
+                        {market.resolved.rationale}
+                      </span>
+                    </div>
+                  )}
+                  {market.status === "disputed" && (
+                    <Link
+                      to="/disputes"
+                      className="flex items-center gap-2 rounded-xl bg-amber-soft p-3 text-xs font-semibold text-amber"
+                    >
+                      <Gavel className="size-4" /> A dispute is under review on this resolution — see the case file
+                    </Link>
+                  )}
+                </div>
+              )}
+
+              {tab === "My position" &&
+                (myPositions.length ? (
+                  <ul className="space-y-2">
+                    {myPositions.map((p) => (
+                      <li key={p.outcomeId} className="rounded-xl bg-secondary/60 p-3 text-sm">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="font-semibold">
+                            {market.outcomes.find((o) => o.id === p.outcomeId)?.label ?? p.outcomeId}
+                          </span>
+                          <span className="tabular">{formatKsh(p.stake)}</span>
+                        </div>
+                        <p className="mt-1 text-xs text-muted-foreground tabular">
+                          Entry {formatPct(p.avgProbability)} · status {p.status}
+                        </p>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <Empty text="No position here yet. Select an outcome below to open your first forecast." />
+                ))}
+
+              {tab === "My forecasts" &&
+                (myPositions.length ? (
+                  <ul className="space-y-2 text-sm">
+                    {myPositions.map((p) => (
+                      <li
+                        key={p.outcomeId}
+                        className="flex items-center justify-between gap-2 rounded-xl bg-secondary/60 p-3"
+                      >
+                        <span className="min-w-0 truncate">
+                          {market.outcomes.find((o) => o.id === p.outcomeId)?.label ?? p.outcomeId} ·{" "}
+                          <span className="text-muted-foreground">{p.status}</span>
+                        </span>
+                        <span className="shrink-0 tabular font-semibold">{formatKsh(p.stake)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <Empty text="Your forecast history on this market will show up here." />
+                ))}
+
+            </div>
           </section>
 
-          <section className="rounded-2xl border border-border bg-card p-4 shadow-card">
+          <section className="rounded-2xl border border-border bg-card p-4 bevel">
             <h2 className="text-sm font-semibold">Created by</h2>
             {creator && (
               <Link
                 to="/profile/$handle"
                 params={{ handle: creator.handle }}
-                className="mt-3 flex items-center gap-3 rounded-xl p-2 transition-colors hover:bg-accent"
+                className="mt-3 flex items-center gap-3 rounded-xl p-2 press hover:bg-accent"
               >
                 <span className={cn("grid size-10 place-items-center rounded-full font-display", toneSoft[creator.tone])}>
                   {creator.initials}
@@ -320,98 +312,10 @@ function MarketDetail() {
           </section>
         </div>
 
-        {/* Stake panel */}
         <aside className="lg:sticky lg:top-20 lg:self-start">
-          <div className="rounded-2xl border border-border bg-card p-4 shadow-card">
-            <h2 className="text-sm font-semibold">Place a forecast</h2>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Your stake joins the {selected.label.toLowerCase()} pool. Payout depends on the final pool split.
-            </p>
+          <ForecastDock market={market} />
 
-            <div className="mt-3 grid grid-cols-2 gap-2">
-              {market.outcomes.map((o, i) => (
-                <button
-                  key={o.id}
-                  type="button"
-                  onClick={() => setOutcomeId(o.id)}
-                  className={cn(
-                    "rounded-xl border py-2.5 text-sm font-semibold transition-colors",
-                    outcomeId === o.id
-                      ? o.tone === "yes"
-                        ? "border-yes bg-yes text-primary-foreground"
-                        : "border-no bg-no text-primary-foreground"
-                      : cn("border-transparent", toneSoft[o.tone]),
-                  )}
-                >
-                  {o.label}
-                  <span className="block text-[0.7rem] font-medium opacity-90 tabular">{formatPct(probs[i] ?? 0)}</span>
-                </button>
-              ))}
-            </div>
-
-            <label className="mt-4 block text-xs font-medium text-muted-foreground" htmlFor="stake">
-              Stake (KSh)
-            </label>
-            <input
-              id="stake"
-              type="number"
-              min={20}
-              step={20}
-              value={stake}
-              onChange={(e) => setStake(Math.max(0, Number(e.target.value)))}
-              className="mt-1 w-full rounded-xl border border-input bg-background px-3 py-2.5 font-display text-lg tabular outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            />
-            <div className="mt-2 flex gap-1.5">
-              {[100, 200, 500, 1000].map((v) => (
-                <button
-                  key={v}
-                  type="button"
-                  onClick={() => setStake(v)}
-                  className="flex-1 rounded-lg bg-secondary py-1.5 text-[0.7rem] font-semibold text-secondary-foreground transition-colors hover:bg-accent tabular"
-                >
-                  {v}
-                </button>
-              ))}
-            </div>
-
-            <dl className="mt-4 space-y-2 rounded-xl bg-secondary/60 p-3 text-xs">
-              <Row label="Implied probability after" value={formatPct(quote.probabilityAfter, 1)} />
-              <Row label="If correct, you receive" value={formatKsh(quote.payout)} strong />
-              <Row label="Net profit" value={formatKsh(quote.profit)} tone="yes" />
-              <Row label="Return multiple" value={`${quote.multiple.toFixed(2)}×`} />
-              <Row
-                label="Fees on the losing pool"
-                value={`${((market.platformFeeBps + market.creatorFeeBps) / 100).toFixed(1)}%`}
-              />
-            </dl>
-
-            <button
-              type="button"
-              disabled={closed || stake <= 0}
-              onClick={() =>
-                toast.success(`Forecast placed · ${formatKsh(stake)} on ${selected.label}`, {
-                  description: `Estimated return ${formatKsh(quote.payout)} if correct. Pools move, so the final split may differ.`,
-                })
-              }
-              className="mt-4 w-full rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-40"
-            >
-              {closed ? "Market closed" : `Forecast ${selected.label} · ${formatKsh(stake)}`}
-            </button>
-            <p className="mt-2 flex items-start gap-1.5 text-[0.68rem] leading-relaxed text-muted-foreground">
-              <Info className="mt-0.5 size-3 shrink-0" />
-              Parimutuel: no fixed odds and no bookmaker. Your return depends on how the pool splits when the market
-              resolves.
-            </p>
-            <button
-              type="button"
-              onClick={() => toast.success("Share link copied", { description: "Every share deepens the pool." })}
-              className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl border border-border py-2.5 text-xs font-semibold transition-colors hover:bg-accent"
-            >
-              <Share2 className="size-3.5" /> Share this market
-            </button>
-          </div>
-
-          <div className="mt-3 rounded-2xl border border-border bg-card p-4 shadow-card">
+          <div className="mt-3 hidden rounded-2xl border border-border bg-card p-4 bevel lg:block">
             <h3 className="text-sm font-semibold">Top forecasters here</h3>
             <ul className="mt-2 space-y-2">
               {people.slice(0, 4).map((p, i) => (
@@ -428,7 +332,7 @@ function MarketDetail() {
                     {p.name}
                   </Link>
                   <span className="tabular text-muted-foreground">{formatPct(p.accuracy)}</span>
-                  <span className={cn("tabular font-semibold", (selectedIndex === 0 ? "text-yes" : "text-no"))}>
+                  <span className="tabular font-semibold text-yes">
                     {formatKsh(p.returns / 40, { compact: true })}
                   </span>
                 </li>
@@ -441,21 +345,17 @@ function MarketDetail() {
   );
 }
 
-function Row({ label, value, strong, tone }: { label: string; value: string; strong?: boolean; tone?: "yes" }) {
+function Stat({ label, value, className }: { label: string; value: string; className?: string }) {
   return (
-    <div className="flex items-center justify-between gap-2">
-      <dt className="text-muted-foreground">{label}</dt>
-      <dd
-        className={cn(
-          "tabular",
-          strong && "font-display text-base",
-          tone === "yes" ? "text-yes font-semibold" : "text-foreground",
-        )}
-      >
-        {value}
-      </dd>
+    <div>
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className={cn("font-display text-xl tabular", className)}>{value}</p>
     </div>
   );
+}
+
+function Empty({ text }: { text: string }) {
+  return <p className="rounded-xl bg-secondary/60 p-4 text-sm text-muted-foreground">{text}</p>;
 }
 
 function StatusPill({ status }: { status: string }) {
