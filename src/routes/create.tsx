@@ -416,16 +416,17 @@ function CreateMarket() {
             >
               Back
             </button>
-            {step < 3 && (
+            {step < 4 && (
               <button
                 type="button"
                 disabled={!canAdvance}
-                onClick={() => setStep((s) => Math.min(3, s + 1))}
+                onClick={() => setStep((s) => Math.min(4, s + 1))}
                 className="rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-40"
               >
                 Continue
               </button>
             )}
+
           </div>
         </div>
 
