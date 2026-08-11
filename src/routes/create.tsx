@@ -3,14 +3,19 @@ import { useMemo, useState } from "react";
 import {
   Bot,
   Check,
+  Copy,
   ImagePlus,
   Info,
+  Loader2,
   Plus,
+  Scale,
+  Share2,
   Sparkles,
   Trash2,
   Wand2,
   X,
 } from "lucide-react";
+
 import { toast } from "sonner";
 import { AppShell } from "@/components/app-shell";
 import { cn } from "@/lib/utils";
