@@ -393,11 +393,13 @@ function CreateMarket() {
                   </div>
                   <button
                     type="button"
-                    onClick={() =>
+                    onClick={() => {
+                      setPublished(true);
+                      setStep(4);
                       toast.success("Market published", {
-                        description: `Seeded ${formatKsh(seed)} · commission ${commission.toFixed(1)}%. Share it to fill the pool.`,
-                      })
-                    }
+                        description: `Opened at 50/50 with ${formatKsh(openingStake)} on ${outcomes[openingSide] ?? "your pick"}. Share it to fill the pool.`,
+                      });
+                    }}
                     className="flex w-full items-center justify-center gap-2 rounded-xl bg-yes py-3 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
                   >
                     <Check className="size-4" /> Publish · seed {formatKsh(seed)}
@@ -406,6 +408,115 @@ function CreateMarket() {
               )}
             </Card>
           )}
+
+          {step === 4 && (
+            <Card title="Share it and fill the pool">
+              <p className="text-xs leading-relaxed text-muted-foreground">
+                A market only pays you commission once forecasters arrive. Share the link, or generate a market card
+                image with the link baked in.
+              </p>
+
+              <div className="grid gap-2 sm:grid-cols-2">
+                {(
+                  [
+                    ["WhatsApp", `https://wa.me/?text=${encodeURIComponent(`${shareText} ${shareLink}`)}`, "yes"],
+                    ["X / Twitter", `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareLink)}`, "primary"],
+                    ["Facebook", `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareLink)}`, "teal"],
+                    ["Telegram", `https://t.me/share/url?url=${encodeURIComponent(shareLink)}&text=${encodeURIComponent(shareText)}`, "grape"],
+                  ] as const
+                ).map(([label, href, tone]) => (
+                  <a
+                    key={label}
+                    href={href}
+                    target="_blank"
+                    rel="noreferrer"
+                    className={cn(
+                      "flex items-center justify-between gap-2 rounded-xl px-3 py-3 text-sm font-semibold press",
+                      tone === "yes"
+                        ? "bg-yes-soft text-yes"
+                        : tone === "primary"
+                          ? "bg-primary-soft text-primary"
+                          : tone === "teal"
+                            ? "bg-teal-soft text-teal"
+                            : "bg-grape-soft text-grape",
+                    )}
+                  >
+                    {label} <Share2 className="size-4" />
+                  </a>
+                ))}
+              </div>
+
+              <div className="flex items-center gap-2 rounded-xl border border-border bg-background px-3 py-2.5">
+                <span className="min-w-0 flex-1 truncate text-xs tabular text-muted-foreground">{shareLink}</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    void navigator.clipboard?.writeText(`${shareText} ${shareLink}`);
+                    toast.success("Invite link copied", {
+                      description: "KSh 500 lands once 10 invited forecasters deposit.",
+                    });
+                  }}
+                  className="shrink-0 rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground press"
+                >
+                  <Copy className="mr-1 inline size-3" /> Copy
+                </button>
+              </div>
+
+              <div className="rounded-2xl border border-border p-3">
+                <p className="text-xs font-semibold">AI market card</p>
+                {cardReady ? (
+                  <div className="mt-2 overflow-hidden rounded-xl bg-primary p-4 text-primary-foreground bevel rise-in">
+                    <p className="text-[0.62rem] tracking-[0.2em] uppercase opacity-80">Polka · forecast this</p>
+                    <p className="mt-1.5 line-clamp-3 font-display text-lg leading-snug">
+                      {question || "Your market question"}
+                    </p>
+                    <div className="mt-3 flex gap-1.5">
+                      {outcomes.slice(0, 3).map((o) => (
+                        <span key={o} className="flex-1 truncate rounded-lg bg-white/15 py-1.5 text-center text-xs font-semibold">
+                          {o} 50%
+                        </span>
+                      ))}
+                    </div>
+                    <p className="mt-3 text-[0.68rem] opacity-80 tabular">{shareLink}</p>
+                  </div>
+                ) : (
+                  <div className={cn("mt-2 h-32 rounded-xl bg-secondary/70", cardGenerating && "shimmer")} />
+                )}
+                <button
+                  type="button"
+                  disabled={cardGenerating}
+                  onClick={() => {
+                    setCardGenerating(true);
+                    setCardReady(false);
+                    window.setTimeout(() => {
+                      setCardGenerating(false);
+                      setCardReady(true);
+                      toast.success("Market card generated", { description: "Link attached. Post it anywhere." });
+                    }, 1_400);
+                  }}
+                  className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl border border-border py-2.5 text-xs font-semibold press hover:bg-accent disabled:opacity-50"
+                >
+                  {cardGenerating ? (
+                    <>
+                      <Loader2 className="size-3.5 animate-spin" /> Generating…
+                    </>
+                  ) : (
+                    <>
+                      <Wand2 className="size-3.5" /> {cardReady ? "Regenerate card" : "Generate market card image"}
+                    </>
+                  )}
+                </button>
+              </div>
+
+              <Link
+                to="/"
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-yes py-3 text-sm font-semibold text-primary-foreground bevel press"
+              >
+                Done · view the feed
+              </Link>
+            </Card>
+          )}
+
 
           <div className="flex items-center justify-between gap-2">
             <button
