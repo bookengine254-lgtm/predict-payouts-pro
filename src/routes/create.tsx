@@ -345,10 +345,59 @@ function CreateMarket() {
                 </p>
               </Field>
 
+              <Field label="Opening stake — this starts the market at 50/50">
+                <div className="flex flex-wrap gap-1.5">
+                  {outcomes.map((o, i) => (
+                    <button
+                      key={`${o}-${i}`}
+                      type="button"
+                      onClick={() => setOpeningSide(i)}
+                      className={cn(
+                        "min-w-0 flex-1 truncate rounded-xl border px-3 py-2 text-xs font-semibold press",
+                        openingSide === i ? "border-primary bg-primary-soft text-primary" : "border-border hover:bg-accent",
+                      )}
+                    >
+                      {o || `Outcome ${i + 1}`}
+                    </button>
+                  ))}
+                </div>
+                <input
+                  type="number"
+                  min={500}
+                  step={500}
+                  value={openingStake}
+                  onChange={(e) => setOpeningStake(Math.max(0, Number(e.target.value)))}
+                  className="mt-2 w-full rounded-xl border border-input bg-background px-3 py-2.5 font-display text-lg tabular outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                />
+                <div className="mt-2 flex items-start gap-2 rounded-xl bg-secondary/60 p-3 text-[0.7rem] leading-relaxed text-muted-foreground">
+                  <Scale className="mt-0.5 size-3.5 shrink-0 text-primary" />
+                  <span>
+                    Your seed is split evenly across {outcomes.length || 2} pools, so every outcome opens at{" "}
+                    <strong className="tabular text-foreground">
+                      {(100 / (outcomes.length || 2)).toFixed(0)}%
+                    </strong>
+                    . Your {formatKsh(openingStake)} on{" "}
+                    <strong className="text-foreground">{outcomes[openingSide] || "your pick"}</strong> is the first real
+                    forecast and is what starts trading.
+                  </span>
+                </div>
+                <div className="mt-2 flex gap-1.5">
+                  {outcomes.map((o, i) => (
+                    <span
+                      key={`bar-${o}-${i}`}
+                      className="min-w-0 flex-1 truncate rounded-lg bg-primary-soft py-1.5 text-center text-[0.7rem] font-semibold text-primary tabular"
+                    >
+                      {o || `#${i + 1}`} {(100 / (outcomes.length || 2)).toFixed(0)}%
+                    </span>
+                  ))}
+                </div>
+              </Field>
+
               <div className="rounded-xl bg-yes-soft p-3 text-xs leading-relaxed text-yes">
                 On a KSh 400K pool with a 55/45 split, a {commission.toFixed(1)}% commission pays you about{" "}
                 <strong className="tabular">{formatKsh(400_000 * 0.45 * (commission / 100))}</strong> at resolution.
               </div>
+
             </Card>
           )}
 
