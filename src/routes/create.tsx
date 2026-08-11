@@ -40,7 +40,7 @@ export const Route = createFileRoute("/create")({
 
 type Kind = "binary" | "multi" | "sports";
 
-const STEPS = ["Question", "Outcomes", "Seed & commission", "AI review"] as const;
+const STEPS = ["Question", "Outcomes", "Seed & commission", "AI review", "Share"] as const;
 
 function CreateMarket() {
   const [step, setStep] = useState(0);
@@ -56,10 +56,16 @@ function CreateMarket() {
   const [away, setAway] = useState("");
   const [league, setLeague] = useState("KPL");
   const [seed, setSeed] = useState(20_000);
+  /** The creator's opening stake sits on one side; the rest balances the book at 50/50. */
+  const [openingStake, setOpeningStake] = useState(2_000);
+  const [openingSide, setOpeningSide] = useState(0);
   const [commission, setCommission] = useState(1.2);
   const [aiFix, setAiFix] = useState(true);
   const [priority, setPriority] = useState(false);
   const [reviewed, setReviewed] = useState(false);
+  const [published, setPublished] = useState(false);
+  const [cardGenerating, setCardGenerating] = useState(false);
+  const [cardReady, setCardReady] = useState(false);
 
   const outcomes = useMemo(() => {
     if (kind === "binary") return ["Yes", "No"];
@@ -73,7 +79,13 @@ function CreateMarket() {
       ? question.trim().length > 12 && criteria.trim().length > 20
       : step === 1
         ? outcomes.length >= 2
-        : true;
+        : step === 3
+          ? published
+          : true;
+
+  const shareLink = `https://polka.co.ke/m/new?ref=you`;
+  const shareText = `${question || "New market on Polka"} — forecast it on Polka, payouts straight to M-Pesa.`;
+
 
   return (
     <AppShell>
