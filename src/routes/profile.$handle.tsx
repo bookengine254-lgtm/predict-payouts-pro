@@ -1,4 +1,6 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { ChevronRight, Settings } from "lucide-react";
+
 import { AppShell } from "@/components/app-shell";
 import { MarketCard } from "@/components/market-card";
 import { toneSoft } from "@/components/tone";
@@ -65,7 +67,23 @@ function Profile() {
           <Stat label="Returns" value={formatKsh(person.returns, { compact: true })} />
           <Stat label="Creator earnings" value={formatKsh(person.creatorEarnings, { compact: true })} />
         </dl>
+        <Link
+          to="/settings"
+          className="mt-4 flex items-center gap-3 rounded-xl border border-border p-3 press hover:bg-accent"
+        >
+          <span className="grid size-9 shrink-0 place-items-center rounded-full bg-primary-soft text-primary">
+            <Settings className="size-4" />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-sm font-semibold">Settings</span>
+            <span className="block truncate text-xs text-muted-foreground">
+              Appearance & light mode, text size, alerts, limits, privacy, payouts
+            </span>
+          </span>
+          <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
+        </Link>
       </header>
+
 
       {created.length > 0 && (
         <section className="mt-5">

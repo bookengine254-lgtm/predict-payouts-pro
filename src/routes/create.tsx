@@ -3,14 +3,19 @@ import { useMemo, useState } from "react";
 import {
   Bot,
   Check,
+  Copy,
   ImagePlus,
   Info,
+  Loader2,
   Plus,
+  Scale,
+  Share2,
   Sparkles,
   Trash2,
   Wand2,
   X,
 } from "lucide-react";
+
 import { toast } from "sonner";
 import { AppShell } from "@/components/app-shell";
 import { cn } from "@/lib/utils";
@@ -40,7 +45,7 @@ export const Route = createFileRoute("/create")({
 
 type Kind = "binary" | "multi" | "sports";
 
-const STEPS = ["Question", "Outcomes", "Seed & commission", "AI review"] as const;
+const STEPS = ["Question", "Outcomes", "Seed & commission", "AI review", "Share"] as const;
 
 function CreateMarket() {
   const [step, setStep] = useState(0);
@@ -56,10 +61,16 @@ function CreateMarket() {
   const [away, setAway] = useState("");
   const [league, setLeague] = useState("KPL");
   const [seed, setSeed] = useState(20_000);
+  /** The creator's opening stake sits on one side; the rest balances the book at 50/50. */
+  const [openingStake, setOpeningStake] = useState(2_000);
+  const [openingSide, setOpeningSide] = useState(0);
   const [commission, setCommission] = useState(1.2);
   const [aiFix, setAiFix] = useState(true);
   const [priority, setPriority] = useState(false);
   const [reviewed, setReviewed] = useState(false);
+  const [published, setPublished] = useState(false);
+  const [cardGenerating, setCardGenerating] = useState(false);
+  const [cardReady, setCardReady] = useState(false);
 
   const outcomes = useMemo(() => {
     if (kind === "binary") return ["Yes", "No"];
@@ -73,7 +84,13 @@ function CreateMarket() {
       ? question.trim().length > 12 && criteria.trim().length > 20
       : step === 1
         ? outcomes.length >= 2
-        : true;
+        : step === 3
+          ? published
+          : true;
+
+  const shareLink = `https://polka.co.ke/m/new?ref=you`;
+  const shareText = `${question || "New market on Polka"} — forecast it on Polka, payouts straight to M-Pesa.`;
+
 
   return (
     <AppShell>
@@ -89,7 +106,7 @@ function CreateMarket() {
         </span>
       </header>
 
-      <ol className="mt-5 grid grid-cols-4 gap-1.5">
+      <ol className="mt-5 grid grid-cols-5 gap-1.5">
         {STEPS.map((s, i) => (
           <li key={s}>
             <div className={cn("h-1.5 rounded-full", i <= step ? "bg-primary" : "bg-secondary")} />
@@ -328,10 +345,59 @@ function CreateMarket() {
                 </p>
               </Field>
 
+              <Field label="Opening stake — this starts the market at 50/50">
+                <div className="flex flex-wrap gap-1.5">
+                  {outcomes.map((o, i) => (
+                    <button
+                      key={`${o}-${i}`}
+                      type="button"
+                      onClick={() => setOpeningSide(i)}
+                      className={cn(
+                        "min-w-0 flex-1 truncate rounded-xl border px-3 py-2 text-xs font-semibold press",
+                        openingSide === i ? "border-primary bg-primary-soft text-primary" : "border-border hover:bg-accent",
+                      )}
+                    >
+                      {o || `Outcome ${i + 1}`}
+                    </button>
+                  ))}
+                </div>
+                <input
+                  type="number"
+                  min={500}
+                  step={500}
+                  value={openingStake}
+                  onChange={(e) => setOpeningStake(Math.max(0, Number(e.target.value)))}
+                  className="mt-2 w-full rounded-xl border border-input bg-background px-3 py-2.5 font-display text-lg tabular outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                />
+                <div className="mt-2 flex items-start gap-2 rounded-xl bg-secondary/60 p-3 text-[0.7rem] leading-relaxed text-muted-foreground">
+                  <Scale className="mt-0.5 size-3.5 shrink-0 text-primary" />
+                  <span>
+                    Your seed is split evenly across {outcomes.length || 2} pools, so every outcome opens at{" "}
+                    <strong className="tabular text-foreground">
+                      {(100 / (outcomes.length || 2)).toFixed(0)}%
+                    </strong>
+                    . Your {formatKsh(openingStake)} on{" "}
+                    <strong className="text-foreground">{outcomes[openingSide] || "your pick"}</strong> is the first real
+                    forecast and is what starts trading.
+                  </span>
+                </div>
+                <div className="mt-2 flex gap-1.5">
+                  {outcomes.map((o, i) => (
+                    <span
+                      key={`bar-${o}-${i}`}
+                      className="min-w-0 flex-1 truncate rounded-lg bg-primary-soft py-1.5 text-center text-[0.7rem] font-semibold text-primary tabular"
+                    >
+                      {o || `#${i + 1}`} {(100 / (outcomes.length || 2)).toFixed(0)}%
+                    </span>
+                  ))}
+                </div>
+              </Field>
+
               <div className="rounded-xl bg-yes-soft p-3 text-xs leading-relaxed text-yes">
                 On a KSh 400K pool with a 55/45 split, a {commission.toFixed(1)}% commission pays you about{" "}
                 <strong className="tabular">{formatKsh(400_000 * 0.45 * (commission / 100))}</strong> at resolution.
               </div>
+
             </Card>
           )}
 
@@ -381,11 +447,13 @@ function CreateMarket() {
                   </div>
                   <button
                     type="button"
-                    onClick={() =>
+                    onClick={() => {
+                      setPublished(true);
+                      setStep(4);
                       toast.success("Market published", {
-                        description: `Seeded ${formatKsh(seed)} · commission ${commission.toFixed(1)}%. Share it to fill the pool.`,
-                      })
-                    }
+                        description: `Opened at 50/50 with ${formatKsh(openingStake)} on ${outcomes[openingSide] ?? "your pick"}. Share it to fill the pool.`,
+                      });
+                    }}
                     className="flex w-full items-center justify-center gap-2 rounded-xl bg-yes py-3 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
                   >
                     <Check className="size-4" /> Publish · seed {formatKsh(seed)}
@@ -394,6 +462,115 @@ function CreateMarket() {
               )}
             </Card>
           )}
+
+          {step === 4 && (
+            <Card title="Share it and fill the pool">
+              <p className="text-xs leading-relaxed text-muted-foreground">
+                A market only pays you commission once forecasters arrive. Share the link, or generate a market card
+                image with the link baked in.
+              </p>
+
+              <div className="grid gap-2 sm:grid-cols-2">
+                {(
+                  [
+                    ["WhatsApp", `https://wa.me/?text=${encodeURIComponent(`${shareText} ${shareLink}`)}`, "yes"],
+                    ["X / Twitter", `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareLink)}`, "primary"],
+                    ["Facebook", `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareLink)}`, "teal"],
+                    ["Telegram", `https://t.me/share/url?url=${encodeURIComponent(shareLink)}&text=${encodeURIComponent(shareText)}`, "grape"],
+                  ] as const
+                ).map(([label, href, tone]) => (
+                  <a
+                    key={label}
+                    href={href}
+                    target="_blank"
+                    rel="noreferrer"
+                    className={cn(
+                      "flex items-center justify-between gap-2 rounded-xl px-3 py-3 text-sm font-semibold press",
+                      tone === "yes"
+                        ? "bg-yes-soft text-yes"
+                        : tone === "primary"
+                          ? "bg-primary-soft text-primary"
+                          : tone === "teal"
+                            ? "bg-teal-soft text-teal"
+                            : "bg-grape-soft text-grape",
+                    )}
+                  >
+                    {label} <Share2 className="size-4" />
+                  </a>
+                ))}
+              </div>
+
+              <div className="flex items-center gap-2 rounded-xl border border-border bg-background px-3 py-2.5">
+                <span className="min-w-0 flex-1 truncate text-xs tabular text-muted-foreground">{shareLink}</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    void navigator.clipboard?.writeText(`${shareText} ${shareLink}`);
+                    toast.success("Invite link copied", {
+                      description: "KSh 500 lands once 10 invited forecasters deposit.",
+                    });
+                  }}
+                  className="shrink-0 rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground press"
+                >
+                  <Copy className="mr-1 inline size-3" /> Copy
+                </button>
+              </div>
+
+              <div className="rounded-2xl border border-border p-3">
+                <p className="text-xs font-semibold">AI market card</p>
+                {cardReady ? (
+                  <div className="mt-2 overflow-hidden rounded-xl bg-primary p-4 text-primary-foreground bevel rise-in">
+                    <p className="text-[0.62rem] tracking-[0.2em] uppercase opacity-80">Polka · forecast this</p>
+                    <p className="mt-1.5 line-clamp-3 font-display text-lg leading-snug">
+                      {question || "Your market question"}
+                    </p>
+                    <div className="mt-3 flex gap-1.5">
+                      {outcomes.slice(0, 3).map((o) => (
+                        <span key={o} className="flex-1 truncate rounded-lg bg-white/15 py-1.5 text-center text-xs font-semibold">
+                          {o} 50%
+                        </span>
+                      ))}
+                    </div>
+                    <p className="mt-3 text-[0.68rem] opacity-80 tabular">{shareLink}</p>
+                  </div>
+                ) : (
+                  <div className={cn("mt-2 h-32 rounded-xl bg-secondary/70", cardGenerating && "shimmer")} />
+                )}
+                <button
+                  type="button"
+                  disabled={cardGenerating}
+                  onClick={() => {
+                    setCardGenerating(true);
+                    setCardReady(false);
+                    window.setTimeout(() => {
+                      setCardGenerating(false);
+                      setCardReady(true);
+                      toast.success("Market card generated", { description: "Link attached. Post it anywhere." });
+                    }, 1_400);
+                  }}
+                  className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl border border-border py-2.5 text-xs font-semibold press hover:bg-accent disabled:opacity-50"
+                >
+                  {cardGenerating ? (
+                    <>
+                      <Loader2 className="size-3.5 animate-spin" /> Generating…
+                    </>
+                  ) : (
+                    <>
+                      <Wand2 className="size-3.5" /> {cardReady ? "Regenerate card" : "Generate market card image"}
+                    </>
+                  )}
+                </button>
+              </div>
+
+              <Link
+                to="/"
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-yes py-3 text-sm font-semibold text-primary-foreground bevel press"
+              >
+                Done · view the feed
+              </Link>
+            </Card>
+          )}
+
 
           <div className="flex items-center justify-between gap-2">
             <button
@@ -404,16 +581,17 @@ function CreateMarket() {
             >
               Back
             </button>
-            {step < 3 && (
+            {step < 4 && (
               <button
                 type="button"
                 disabled={!canAdvance}
-                onClick={() => setStep((s) => Math.min(3, s + 1))}
+                onClick={() => setStep((s) => Math.min(4, s + 1))}
                 className="rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-40"
               >
                 Continue
               </button>
             )}
+
           </div>
         </div>
 

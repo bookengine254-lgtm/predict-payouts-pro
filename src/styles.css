@@ -181,19 +181,29 @@
   }
 
   /*
-   * One root scale drives every rem in the app. Small screens step up to 115%
-   * so type and tap targets are thumb-sized without any layout redesign —
-   * everything is expressed in rem, so proportions hold.
+   * One root scale drives every rem in the app. --app-scale comes from the
+   * user's text-size setting; small screens step up so type and tap targets are
+   * thumb-sized without any layout redesign — everything is expressed in rem,
+   * so proportions hold.
    */
   html {
-    font-size: 17px;
+    font-size: calc(17px * var(--app-scale, 1));
   }
 
   @media (max-width: 30rem) {
     html {
-      font-size: 115%;
+      font-size: calc(19.5px * var(--app-scale, 1));
     }
   }
+
+  /* Honour the in-app "reduce motion" preference and the OS setting. */
+  html[data-motion="reduced"] *,
+  html[data-motion="reduced"] *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+
 
   body {
     background-color: var(--color-background);

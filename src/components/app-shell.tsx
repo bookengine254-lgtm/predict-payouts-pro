@@ -64,8 +64,9 @@ const footerLinks: { heading: string; links: { to: string; label: string }[] }[]
       { to: "/invite", label: "Invite & earn" },
       { to: "/create", label: "Creator commission" },
       { to: "/wallet", label: "Wallet & M-Pesa" },
-      { to: "/profile/you", label: "Your profile" },
+      { to: "/settings", label: "Settings" },
     ],
+
   },
 ];
 
