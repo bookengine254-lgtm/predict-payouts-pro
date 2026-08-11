@@ -106,7 +106,7 @@ function CreateMarket() {
         </span>
       </header>
 
-      <ol className="mt-5 grid grid-cols-4 gap-1.5">
+      <ol className="mt-5 grid grid-cols-5 gap-1.5">
         {STEPS.map((s, i) => (
           <li key={s}>
             <div className={cn("h-1.5 rounded-full", i <= step ? "bg-primary" : "bg-secondary")} />
