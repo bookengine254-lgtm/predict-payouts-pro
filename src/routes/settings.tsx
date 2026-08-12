@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/app-shell";
+import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import { formatKsh } from "@/lib/parimutuel";
 import { usePrefs, type TextScale } from "@/hooks/use-prefs";
@@ -49,6 +50,7 @@ const SCALES: { id: TextScale; label: string; hint: string }[] = [
 ];
 
 function SettingsPage() {
+  const { signOut } = useAuth();
   const { prefs, set, reset } = usePrefs();
   const [name, setName] = useState(currentUser.name);
   const [handle, setHandle] = useState(currentUser.handle);
@@ -237,7 +239,10 @@ function SettingsPage() {
           </button>
           <button
             type="button"
-            onClick={() => toast("Signed out of this device")}
+            onClick={() => {
+              signOut();
+              toast("Signed out of this device");
+            }}
             className="flex w-full items-center justify-center gap-2 rounded-xl border border-border py-3 text-sm font-semibold press hover:bg-accent"
           >
             <LogOut className="size-4" /> Sign out
