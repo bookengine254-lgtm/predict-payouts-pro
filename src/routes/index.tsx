@@ -10,6 +10,9 @@ import { cn } from "@/lib/utils";
 import { toneSoft } from "@/components/tone";
 
 export const Route = createFileRoute("/")({
+  validateSearch: (search: Record<string, unknown>): { category?: CategoryId } => ({
+    category: typeof search["category"] === "string" ? (search["category"] as CategoryId) : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Polka — Skill-Based Forecasting Markets, Paid via M-Pesa" },
@@ -47,7 +50,13 @@ export const Route = createFileRoute("/")({
 type Sort = "trending" | "new" | "closing";
 
 function Discover() {
-  const [category, setCategory] = useState<CategoryId | "all">("all");
+  const { category: searchCategory } = Route.useSearch();
+  const [category, setCategory] = useState<CategoryId | "all">(searchCategory ?? "all");
+
+  useEffect(() => {
+    setCategory(searchCategory ?? "all");
+  }, [searchCategory]);
+
   const [sort, setSort] = useState<Sort>("trending");
 
   const open = markets.filter((m) => m.status === "open");
