@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { BadgeCheck, Flame, Clock, Plus, Sparkles, TrendingUp } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { MarketCard } from "@/components/market-card";
@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 import { toneSoft } from "@/components/tone";
 
 export const Route = createFileRoute("/")({
-  validateSearch: (search: Record<string, unknown>): { category?: CategoryId } => ({
+  validateSearch: (search: Record<string, unknown>): { category?: CategoryId | undefined } => ({
     category: typeof search["category"] === "string" ? (search["category"] as CategoryId) : undefined,
   }),
   head: () => ({
