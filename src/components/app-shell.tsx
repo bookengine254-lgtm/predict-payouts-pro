@@ -16,9 +16,13 @@ import {
   Wallet,
 } from "lucide-react";
 import { Logo } from "./logo";
+import { AuthSheet } from "./auth-sheet";
+import { OnboardingSheet } from "./onboarding-sheet";
+import { QuickActions } from "./quick-actions";
 import { cn } from "@/lib/utils";
-import { currentUser } from "@/lib/mock-data";
+import { categories, currentUser } from "@/lib/mock-data";
 import { formatKsh } from "@/lib/parimutuel";
+import { useAuth } from "@/hooks/use-auth";
 
 /** Bottom nav: four destinations plus the rewards gift in the middle. Creating a
  * market lives on the home feed as a thumb-reach floating button instead. */
