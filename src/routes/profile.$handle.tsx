@@ -1,4 +1,4 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { ChevronRight, Settings } from "lucide-react";
 
 import { AppShell } from "@/components/app-shell";
@@ -6,19 +6,19 @@ import { MarketCard } from "@/components/market-card";
 import { toneSoft } from "@/components/tone";
 import { cn } from "@/lib/utils";
 import { formatKsh, formatPct } from "@/lib/parimutuel";
-import { markets, people, type Person } from "@/lib/mock-data";
+import { currentUser, markets, people, type Person } from "@/lib/mock-data";
+import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/profile/$handle")({
-  loader: ({ params }): { person: Person } => {
-    const person = people.find((p) => p.handle === params.handle);
-    if (!person) throw notFound();
-    return { person };
-  },
+  loader: ({ params }): { person: Person | null; handle: string } => ({
+    person: people.find((p) => p.handle === params.handle) ?? null,
+    handle: params.handle,
+  }),
   head: ({ loaderData }) => {
-    if (!loaderData) {
-      return { meta: [{ title: "Forecaster not found — Polka" }, { name: "robots", content: "noindex" }] };
+    const person = loaderData?.person;
+    if (!person) {
+      return { meta: [{ title: "Your forecaster profile — Polka" }, { name: "robots", content: "noindex" }] };
     }
-    const { person } = loaderData;
     const description = `${person.name} · ${formatPct(person.accuracy)} accuracy across ${person.forecasts} forecasts on Polka.`;
     return {
       meta: [
@@ -32,21 +32,59 @@ export const Route = createFileRoute("/profile/$handle")({
     };
   },
   component: Profile,
-  notFoundComponent: () => (
-    <AppShell>
-      <div className="py-20 text-center">
-        <h1 className="font-display text-2xl">Forecaster not found</h1>
-        <Link to="/leaderboard" className="mt-3 inline-block text-sm font-semibold text-primary">
-          Back to leaderboard
-        </Link>
-      </div>
-    </AppShell>
-  ),
 });
 
 function Profile() {
-  const { person } = Route.useLoaderData() as { person: Person };
+  const { person: found, handle } = Route.useLoaderData() as { person: Person | null; handle: string };
+  const { account, openAuth } = useAuth();
+
+  /** A freshly created account always has a profile — build it from the session. */
+  const own =
+    account && (handle === "you" || handle.toLowerCase() === account.username.toLowerCase())
+      ? ({
+          handle: account.username || "you",
+          name: account.name || account.username,
+          initials: account.initials,
+          tone: "grape",
+          accuracy: currentUser.accuracy,
+          forecasts: currentUser.forecasts,
+          returns: currentUser.balance,
+          followers: currentUser.referrals,
+          creatorEarnings: currentUser.referralEarnings,
+          bio: "New forecaster on Polka. Building an accuracy record one pool at a time.",
+        } satisfies Person)
+      : null;
+
+  const person = found ?? own;
+
+  if (!person) {
+    return (
+      <AppShell>
+        <div className="py-20 text-center">
+          <h1 className="font-display text-2xl">This profile isn't on Polka yet</h1>
+          <p className="mt-2 text-sm text-muted-foreground">Sign in to claim your own forecaster profile.</p>
+          <div className="mt-4 flex flex-wrap justify-center gap-2">
+            <button
+              type="button"
+              onClick={() => openAuth("signup")}
+              className="rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground press"
+            >
+              Create account
+            </button>
+            <Link
+              to="/leaderboard"
+              className="rounded-xl border border-border px-4 py-2.5 text-sm font-semibold press hover:bg-accent"
+            >
+              Back to leaderboard
+            </Link>
+          </div>
+        </div>
+      </AppShell>
+    );
+  }
+
   const created = markets.filter((m) => m.creator === person.handle);
+
 
   return (
     <AppShell>

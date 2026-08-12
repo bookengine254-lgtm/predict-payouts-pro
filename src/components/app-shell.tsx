@@ -6,6 +6,7 @@ import {
   Compass,
   Gavel,
   Gift,
+  LogOut,
   LayoutGrid,
   LineChart,
   Plus,
@@ -16,9 +17,13 @@ import {
   Wallet,
 } from "lucide-react";
 import { Logo } from "./logo";
+import { AuthSheet } from "./auth-sheet";
+import { OnboardingSheet } from "./onboarding-sheet";
+import { QuickActions } from "./quick-actions";
 import { cn } from "@/lib/utils";
-import { currentUser } from "@/lib/mock-data";
+import { categories, currentUser } from "@/lib/mock-data";
 import { formatKsh } from "@/lib/parimutuel";
+import { useAuth } from "@/hooks/use-auth";
 
 /** Bottom nav: four destinations plus the rewards gift in the middle. Creating a
  * market lives on the home feed as a thumb-reach floating button instead. */
@@ -74,17 +79,62 @@ export function AppShell({ children, wide = false }: { children: ReactNode; wide
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <TopBar />
+      <RecommendationPills />
       <div className={cn("mx-auto flex w-full flex-1 gap-8 px-4 lg:px-8", wide ? "max-w-[1500px]" : "max-w-[1280px]")}>
         <MenuRail />
         <main className="min-w-0 flex-1 pt-4 pb-28 lg:pt-6 lg:pb-12">{children}</main>
       </div>
       <SiteFooter />
       <BottomNav />
+      <QuickActions />
+      <AuthSheet />
+      <OnboardingSheet />
+    </div>
+  );
+}
+
+/** Quick-jump pills right under the top bar for faster navigation. */
+function RecommendationPills() {
+  return (
+    <div className="sticky top-[3.25rem] z-30 border-b border-border bg-background/85 backdrop-blur-lg lg:top-[3.5rem]">
+      <div className="mx-auto flex max-w-[1500px] gap-2 overflow-x-auto px-4 py-2 hide-scrollbar lg:px-8">
+        <Link
+          to="/"
+          activeOptions={{ exact: true }}
+          className="shrink-0 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground data-[status=active]:border-primary data-[status=active]:bg-primary data-[status=active]:text-primary-foreground"
+        >
+          Trending
+        </Link>
+        {categories.map((c) => (
+          <Link
+            key={c.id}
+            to="/"
+            search={{ category: c.id }}
+            className="shrink-0 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground"
+          >
+            {c.label}
+          </Link>
+        ))}
+        <Link
+          to="/leaderboard"
+          className="shrink-0 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground"
+        >
+          Leaderboard
+        </Link>
+        <Link
+          to="/invite"
+          className="shrink-0 rounded-full bg-grape-soft px-3 py-1.5 text-xs font-semibold text-grape"
+        >
+          Invite & earn
+        </Link>
+      </div>
     </div>
   );
 }
 
 function TopBar() {
+  const { account, openAuth, signOut } = useAuth();
+
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur-lg">
       <div className="mx-auto grid max-w-[1500px] grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-4 py-2.5 lg:gap-6 lg:px-8">
@@ -112,37 +162,68 @@ function TopBar() {
           >
             <Search className="size-4.5" />
           </button>
-          <Link
-            to="/wallet"
-            search={{}}
-            className="flex items-center gap-1.5 rounded-lg bg-primary px-2.5 py-1.5 text-xs font-semibold text-primary-foreground bevel press transition-opacity hover:opacity-90"
-          >
-            <Wallet className="size-3.5" />
-            <span className="tabular">{formatKsh(currentUser.balance, { compact: true })}</span>
-          </Link>
 
-          {/* Mobile: one-tap green top-up sitting right beside the wallet */}
-          <Link
-            to="/wallet"
-            search={{ topup: true }}
-            className="flex items-center gap-1 rounded-lg bg-yes px-2 py-1.5 text-xs font-bold text-primary-foreground transition-opacity hover:opacity-90 lg:hidden"
-            aria-label="Top up with M-Pesa"
-          >
-            <Plus className="size-3.5" /> Top up
-          </Link>
-          <Link
-            to="/profile/$handle"
-            params={{ handle: "you" }}
-            className="hidden size-9 place-items-center rounded-full bg-grape-soft font-display text-xs text-grape lg:grid"
-            aria-label="Your profile"
-          >
-            {currentUser.initials}
-          </Link>
+          {account ? (
+            <>
+              <Link
+                to="/wallet"
+                search={{}}
+                className="flex items-center gap-1.5 rounded-lg bg-primary px-2.5 py-1.5 text-xs font-semibold text-primary-foreground bevel press transition-opacity hover:opacity-90"
+              >
+                <Wallet className="size-3.5" />
+                <span className="tabular">{formatKsh(currentUser.balance, { compact: true })}</span>
+              </Link>
+
+              {/* Mobile: one-tap green top-up sitting right beside the wallet */}
+              <Link
+                to="/wallet"
+                search={{ topup: true }}
+                className="flex items-center gap-1 rounded-lg bg-yes px-2 py-1.5 text-xs font-bold text-primary-foreground transition-opacity hover:opacity-90 lg:hidden"
+                aria-label="Top up with M-Pesa"
+              >
+                <Plus className="size-3.5" /> Top up
+              </Link>
+              <Link
+                to="/profile/$handle"
+                params={{ handle: account.username || "you" }}
+                className="hidden size-9 place-items-center rounded-full bg-grape-soft font-display text-xs text-grape lg:grid"
+                aria-label="Your profile"
+              >
+                {account.initials}
+              </Link>
+              <button
+                type="button"
+                onClick={signOut}
+                className="hidden size-9 place-items-center rounded-lg text-muted-foreground transition-colors hover:bg-accent hover:text-foreground lg:grid"
+                aria-label="Sign out"
+              >
+                <LogOut className="size-4.5" />
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={() => openAuth("signin")}
+                className="rounded-lg border border-border px-2.5 py-1.5 text-xs font-semibold text-foreground press hover:bg-accent"
+              >
+                Log in
+              </button>
+              <button
+                type="button"
+                onClick={() => openAuth("signup")}
+                className="rounded-lg bg-primary px-2.5 py-1.5 text-xs font-semibold text-primary-foreground bevel press"
+              >
+                Sign up
+              </button>
+            </>
+          )}
         </div>
       </div>
     </header>
   );
 }
+
 
 function MenuRail() {
   return (
