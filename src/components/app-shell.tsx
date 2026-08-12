@@ -6,6 +6,7 @@ import {
   Compass,
   Gavel,
   Gift,
+  LogOut,
   LayoutGrid,
   LineChart,
   Plus,
