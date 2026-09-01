@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import {
   Bell,
   BarChart3,
@@ -13,6 +13,7 @@ import {
   PlusCircle,
   Search,
   Trophy,
+  X,
   User,
   Wallet,
 } from "lucide-react";
@@ -21,7 +22,7 @@ import { AuthSheet } from "./auth-sheet";
 import { OnboardingSheet } from "./onboarding-sheet";
 import { QuickActions } from "./quick-actions";
 import { cn } from "@/lib/utils";
-import { categories, currentUser } from "@/lib/mock-data";
+import { categories, currentUser, markets, totalPool } from "@/lib/mock-data";
 import { formatKsh } from "@/lib/parimutuel";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -184,7 +185,7 @@ function TopBar() {
   const { account, openAuth, signOut } = useAuth();
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur-lg">
+    <header>
       <div className="mx-auto grid max-w-[1500px] grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-4 py-2.5 lg:gap-6 lg:px-8">
         <Logo />
 
@@ -203,14 +204,6 @@ function TopBar() {
         <div className="lg:hidden" />
 
         <div className="flex items-center gap-1.5">
-          <button
-            type="button"
-            className="hidden size-9 place-items-center rounded-lg text-muted-foreground transition-colors hover:bg-accent hover:text-foreground sm:grid"
-            aria-label="Search markets"
-          >
-            <Search className="size-4.5" />
-          </button>
-
           {account ? (
             <>
               <Link
