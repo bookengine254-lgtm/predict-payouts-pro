@@ -78,8 +78,12 @@ const footerLinks: { heading: string; links: { to: string; label: string }[] }[]
 export function AppShell({ children, wide = false }: { children: ReactNode; wide?: boolean }) {
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <TopBar />
-      <RecommendationPills />
+      {/* One continuous sticky header: brand row, category pills, then search. */}
+      <div className="sticky top-0 z-40 border-b border-border bg-background/90 backdrop-blur-lg">
+        <TopBar />
+        <RecommendationPills />
+        <MarketSearch />
+      </div>
       <div className={cn("mx-auto flex w-full flex-1 gap-8 px-4 lg:px-8", wide ? "max-w-[1500px]" : "max-w-[1280px]")}>
         <MenuRail />
         <main className="min-w-0 flex-1 pt-4 pb-28 lg:pt-6 lg:pb-12">{children}</main>
@@ -93,44 +97,88 @@ export function AppShell({ children, wide = false }: { children: ReactNode; wide
   );
 }
 
-/** Quick-jump pills right under the top bar for faster navigation. */
+/** Quick-jump category pills, visually fused to the brand row above them. */
 function RecommendationPills() {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const search = useRouterState({ select: (s) => s.location.search as { category?: string } });
+  const active = pathname === "/" ? (search.category ?? "trending") : null;
+
+  const pill = (isActive: boolean) =>
+    cn(
+      "shrink-0 rounded-full px-3.5 py-1.5 text-[0.8rem] font-semibold transition-colors",
+      isActive ? "bg-primary text-primary-foreground" : "bg-secondary/70 text-muted-foreground hover:text-foreground",
+    );
+
   return (
-    <div className="sticky top-[3.25rem] z-30 border-b border-border bg-background/85 backdrop-blur-lg lg:top-[3.5rem]">
-      <div className="mx-auto flex max-w-[1500px] gap-2 overflow-x-auto px-4 py-2 hide-scrollbar lg:px-8">
-        <Link
-          to="/"
-          activeOptions={{ exact: true }}
-          className="shrink-0 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground data-[status=active]:border-primary data-[status=active]:bg-primary data-[status=active]:text-primary-foreground"
-        >
-          Trending
+    <div className="mx-auto flex max-w-[1500px] gap-1.5 overflow-x-auto px-4 pb-1.5 hide-scrollbar lg:px-8">
+      <Link to="/" activeOptions={{ exact: true }} search={{}} className={pill(active === "trending")}>
+        Trending
+      </Link>
+      {categories.map((c) => (
+        <Link key={c.id} to="/" search={{ category: c.id }} className={pill(active === c.id)}>
+          {c.label}
         </Link>
-        {categories.map((c) => (
-          <Link
-            key={c.id}
-            to="/"
-            search={{ category: c.id }}
-            className="shrink-0 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground"
-          >
-            {c.label}
-          </Link>
-        ))}
-        <Link
-          to="/leaderboard"
-          className="shrink-0 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground"
-        >
-          Leaderboard
-        </Link>
-        <Link
-          to="/invite"
-          className="shrink-0 rounded-full bg-grape-soft px-3 py-1.5 text-xs font-semibold text-grape"
-        >
-          Invite & earn
-        </Link>
-      </div>
+      ))}
+      <Link to="/leaderboard" className={pill(false)}>
+        Leaderboard
+      </Link>
+      <Link to="/invite" className="shrink-0 rounded-full bg-grape-soft px-3.5 py-1.5 text-[0.8rem] font-semibold text-grape">
+        Invite & earn
+      </Link>
     </div>
   );
 }
+
+/** Inline market search, sitting directly beneath the category pills. */
+function MarketSearch() {
+  const [q, setQ] = useState("");
+  const term = q.trim().toLowerCase();
+  const results = term
+    ? markets
+        .filter((m) => m.status === "open")
+        .filter((m) => `${m.question} ${m.shortTitle} ${m.category}`.toLowerCase().includes(term))
+        .slice(0, 6)
+    : [];
+
+  return (
+    <div className="relative mx-auto max-w-[1500px] px-4 pb-2 lg:px-8">
+      <label className="flex items-center gap-2 rounded-full bg-secondary/70 px-3.5 py-2">
+        <Search className="size-4 shrink-0 text-muted-foreground" />
+        <input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="Search markets — politics, Harambee Stars, BTC…"
+          className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+        />
+        {q && (
+          <button type="button" onClick={() => setQ("")} aria-label="Clear search" className="text-muted-foreground">
+            <X className="size-4" />
+          </button>
+        )}
+      </label>
+      {results.length > 0 && (
+        <ul className="absolute inset-x-4 top-full z-50 max-h-[60vh] overflow-y-auto rounded-2xl border border-border bg-card p-1.5 shadow-card lg:inset-x-8">
+          {results.map((m) => (
+            <li key={m.id}>
+              <Link
+                to="/market/$marketId"
+                params={{ marketId: m.id }}
+                onClick={() => setQ("")}
+                className="flex items-center gap-2 rounded-xl px-2 py-2 hover:bg-accent/50"
+              >
+                <span className="min-w-0 flex-1 truncate text-sm font-medium">{m.shortTitle}</span>
+                <span className="shrink-0 text-xs text-muted-foreground tabular">
+                  {formatKsh(totalPool(m), { compact: true })}
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 
 function TopBar() {
   const { account, openAuth, signOut } = useAuth();
