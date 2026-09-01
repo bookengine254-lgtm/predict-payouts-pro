@@ -52,6 +52,7 @@ function CreateMarket() {
   const [kind, setKind] = useState<Kind>("binary");
   const [question, setQuestion] = useState("");
   const [category, setCategory] = useState<CategoryId>("politics");
+  const [customCategory, setCustomCategory] = useState("");
   const [criteria, setCriteria] = useState("");
   const [emoji, setEmoji] = useState("📈");
   const [thumb, setThumb] = useState<string | null>(null);
@@ -148,7 +149,32 @@ function CreateMarket() {
                       {c.label}
                     </button>
                   ))}
+                  <button
+                    type="button"
+                    onClick={() => setCustomCategory((v) => (v ? "" : " "))}
+                    className={cn(
+                      "rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors",
+                      customCategory
+                        ? "border-primary bg-primary-soft text-primary"
+                        : "border-dashed border-border text-muted-foreground hover:text-foreground",
+                    )}
+                  >
+                    + Custom category
+                  </button>
                 </div>
+                {customCategory !== "" && (
+                  <input
+                    value={customCategory.trim()}
+                    onChange={(e) => setCustomCategory(e.target.value || " ")}
+                    placeholder="Name your own category, e.g. Nairobi transport"
+                    className="mt-2 w-full rounded-xl border border-input bg-background px-3 py-2.5 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  />
+                )}
+                <p className="mt-1.5 text-xs text-muted-foreground">
+                  {customCategory.trim()
+                    ? `Your market will be filed under "${customCategory.trim()}" once AI review approves the name.`
+                    : "Pick a house category, or create your own for niche markets."}
+                </p>
               </Field>
 
               <Field label="Resolution criteria">
