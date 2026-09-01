@@ -1,10 +1,20 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { BadgeCheck, Flame, Clock, Plus, Sparkles, TrendingUp } from "lucide-react";
+import {
+  BadgeCheck,
+  Flame,
+  Clock,
+  ChevronLeft,
+  ChevronRight,
+  Gift,
+  LineChart,
+  Sparkles,
+  TrendingUp,
+} from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { MarketCard } from "@/components/market-card";
-import { InviteBanner, LearnBanner, PayoutBanner } from "@/components/banners";
-import { categories, currentUser, markets, totalPool, type CategoryId } from "@/lib/mock-data";
+import { LearnBanner } from "@/components/banners";
+import { currentUser, markets, totalPool, type CategoryId, type Market } from "@/lib/mock-data";
 import { formatKsh } from "@/lib/parimutuel";
 import { cn } from "@/lib/utils";
 import { toneSoft } from "@/components/tone";
@@ -51,11 +61,7 @@ type Sort = "trending" | "new" | "closing";
 
 function Discover() {
   const { category: searchCategory } = Route.useSearch();
-  const [category, setCategory] = useState<CategoryId | "all">(searchCategory ?? "all");
-
-  useEffect(() => {
-    setCategory(searchCategory ?? "all");
-  }, [searchCategory]);
+  const category: CategoryId | "all" = searchCategory ?? "all";
 
   const [sort, setSort] = useState<Sort>("trending");
 
@@ -71,55 +77,11 @@ function Discover() {
 
   const featured = open.filter((m) => m.featured);
   const resolved = markets.filter((m) => m.status === "resolved" || m.status === "disputed").slice(0, 4);
-  const volume = markets.reduce((sum, m) => sum + totalPool(m), 0);
 
 
   return (
     <AppShell>
-      <section className="rounded-3xl border border-border bg-card p-5 shadow-card sm:p-7">
-        <p className="font-display text-[0.68rem] tracking-[0.2em] uppercase text-primary">Skill-based forecasting</p>
-        <h1 className="mt-2 max-w-2xl text-2xl leading-[1.1] font-semibold text-foreground sm:text-4xl">
-          Read the world better than the crowd. The pool pays the difference.
-        </h1>
-        <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground">
-          Every forecast joins one shared pool. No bookmaker sets odds, no house takes a side — accurate forecasters
-          split what the pool holds. Top up and cash out with M-Pesa.
-        </p>
-        <div className="mt-5 flex flex-wrap items-center gap-2">
-          <Link
-            to="/create"
-            className="rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
-          >
-            Launch your own market
-          </Link>
-          <Link
-            to="/how-it-works"
-            className="rounded-xl border border-border bg-background px-4 py-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-accent"
-          >
-            How payouts work
-          </Link>
-        </div>
-        <dl className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {[
-            { label: "Open pools", value: formatKsh(volume, { compact: true }), tone: "yes" as const },
-            { label: "Live markets", value: String(open.length), tone: "grape" as const },
-            { label: "Your accuracy", value: `${Math.round(currentUser.accuracy * 100)}%`, tone: "teal" as const },
-            { label: "Day streak", value: `${currentUser.streak}`, tone: "amber" as const },
-          ].map((s) => (
-            <div key={s.label} className={cn("rounded-xl px-3 py-2.5", toneSoft[s.tone])}>
-              <dt className="text-[0.68rem] font-medium opacity-80">{s.label}</dt>
-              <dd className="font-display text-xl leading-tight tabular">{s.value}</dd>
-            </div>
-          ))}
-        </dl>
-      </section>
-
-      <div className="mt-5 -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 hide-scrollbar lg:mx-0 lg:px-0">
-        <Chip active={category === "all"} onClick={() => setCategory("all")} label="All" />
-        {categories.map((c) => (
-          <Chip key={c.id} active={category === c.id} onClick={() => setCategory(c.id)} label={c.label} tone={c.tone} />
-        ))}
-      </div>
+      <HeroSlider top={visible[0] ?? open[0]} />
 
       <section className="mt-6">
         <SectionHead icon={Flame} title="Featured pools" hint="Deepest liquidity right now" />
@@ -130,10 +92,6 @@ function Discover() {
         </div>
       </section>
 
-      <div className="mt-6 grid gap-3 lg:grid-cols-2">
-        <PayoutBanner />
-        <InviteBanner />
-      </div>
 
       <section className="mt-8">
         <div className="flex flex-wrap items-center justify-between gap-2">
@@ -206,48 +164,10 @@ function Discover() {
       <div className="mt-6">
         <LearnBanner />
       </div>
-
-      {/* Thumb-sized create button, Twitter-style */}
-      <Link
-        to="/create"
-        aria-label="Create a market"
-        className="fixed bottom-[calc(4.75rem+env(safe-area-inset-bottom))] left-4 z-40 grid size-14 place-items-center rounded-full bg-primary text-primary-foreground bevel-raised press lg:hidden"
-      >
-        <Plus className="size-7" />
-      </Link>
     </AppShell>
   );
 }
 
-
-function Chip({
-  label,
-  active,
-  onClick,
-  tone,
-}: {
-  label: string;
-  active: boolean;
-  onClick: () => void;
-  tone?: keyof typeof toneSoft;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        "shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors",
-        active
-          ? "border-primary bg-primary text-primary-foreground"
-          : tone
-            ? cn("border-transparent", toneSoft[tone])
-            : "border-border bg-card text-muted-foreground hover:text-foreground",
-      )}
-    >
-      {label}
-    </button>
-  );
-}
 
 function SectionHead({
   icon: Icon,
@@ -264,5 +184,159 @@ function SectionHead({
       <h2 className="truncate text-base font-semibold text-foreground">{title}</h2>
       <span className="shrink-0 text-xs text-muted-foreground">{hint}</span>
     </div>
+  );
+}
+
+type Slide = {
+  key: string;
+  eyebrow: string;
+  title: string;
+  body: string;
+  cta: string;
+  tone: keyof typeof toneSoft;
+  icon: React.ComponentType<{ className?: string }>;
+  link: { to: string; params?: Record<string, string> };
+  stats?: { label: string; value: string }[];
+};
+
+/**
+ * Slide-based hero: your own numbers and personal recommendations only —
+ * no platform-wide volume or user counts.
+ */
+function HeroSlider({ top }: { top: Market | undefined }) {
+  const slides: Slide[] = [
+    {
+      key: "you",
+      eyebrow: "Your standing",
+      title: `${currentUser.tier} · ${Math.round(currentUser.accuracy * 100)}% accuracy`,
+      body: `${currentUser.nextTierAt - currentUser.forecasts} more resolved forecasts to reach the next tier. Keep the streak alive.`,
+      cta: "Open your portfolio",
+      tone: "primary",
+      icon: TrendingUp,
+      link: { to: "/portfolio" },
+      stats: [
+        { label: "Available", value: formatKsh(currentUser.balance, { compact: true }) },
+        { label: "In play", value: formatKsh(currentUser.locked, { compact: true }) },
+        { label: "Day streak", value: String(currentUser.streak) },
+      ],
+    },
+    ...(top
+      ? [
+          {
+            key: "rec",
+            eyebrow: "Recommended for you",
+            title: top.shortTitle,
+            body: top.question,
+            cta: "Read the pool",
+            tone: "teal" as const,
+            icon: Sparkles,
+            link: { to: "/market/$marketId", params: { marketId: top.id } },
+          },
+        ]
+      : []),
+    {
+      key: "invite",
+      eyebrow: "Invite & earn",
+      title: "Keep 10% of your friends' platform fees",
+      body: "Your invite link pays you for a full year — track every referral in Rewards.",
+      cta: "Get your invite link",
+      tone: "grape",
+      icon: Gift,
+      link: { to: "/invite" },
+    },
+    {
+      key: "create",
+      eyebrow: "Creator commission",
+      title: "Launch a market, earn on every stake",
+      body: "Seed the pool at 50/50, share it, and collect commission as forecasters arrive.",
+      cta: "Create a market",
+      tone: "amber",
+      icon: Flame,
+      link: { to: "/create" },
+    },
+    {
+      key: "payouts",
+      eyebrow: "How the pool pays",
+      title: "Parimutuel maths, no bookmaker",
+      body: "Model your split before you stake with the payout calculator.",
+      cta: "See the maths",
+      tone: "yes",
+      icon: LineChart,
+      link: { to: "/payouts" },
+    },
+  ];
+
+  const [i, setI] = useState(0);
+  const count = slides.length;
+
+  useEffect(() => {
+    const t = setInterval(() => setI((v) => (v + 1) % count), 7000);
+    return () => clearInterval(t);
+  }, [count]);
+
+  const slide = slides[i]!;
+  const Icon = slide.icon;
+
+  return (
+    <section aria-label="Highlights" className={cn("overflow-hidden rounded-3xl p-5 sm:p-7", toneSoft[slide.tone])}>
+      <div key={slide.key} className="rise-in">
+        <p className="flex items-center gap-2 font-display text-[0.68rem] tracking-[0.2em] uppercase opacity-80">
+          <Icon className="size-4" /> {slide.eyebrow}
+        </p>
+        <h1 className="mt-2 max-w-2xl text-2xl leading-[1.15] font-semibold sm:text-4xl">{slide.title}</h1>
+        <p className="mt-2 max-w-xl text-sm leading-relaxed opacity-80">{slide.body}</p>
+
+        {slide.stats && (
+          <dl className="mt-4 flex flex-wrap gap-x-8 gap-y-3">
+            {slide.stats.map((s) => (
+              <div key={s.label}>
+                <dt className="text-[0.7rem] opacity-70">{s.label}</dt>
+                <dd className="font-display text-xl leading-tight tabular">{s.value}</dd>
+              </div>
+            ))}
+          </dl>
+        )}
+
+        <Link
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          to={slide.link.to as any}
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          params={slide.link.params as any}
+          className="mt-5 inline-flex items-center gap-1.5 rounded-xl bg-foreground/10 px-4 py-2.5 text-sm font-semibold press hover:bg-foreground/15"
+        >
+          {slide.cta} <ChevronRight className="size-4" />
+        </Link>
+      </div>
+
+      <div className="mt-5 flex items-center gap-3">
+        <button
+          type="button"
+          aria-label="Previous highlight"
+          onClick={() => setI((v) => (v - 1 + count) % count)}
+          className="grid size-8 place-items-center rounded-full bg-foreground/10 press"
+        >
+          <ChevronLeft className="size-4" />
+        </button>
+        <div className="flex flex-1 gap-1.5">
+          {slides.map((s, idx) => (
+            <button
+              key={s.key}
+              type="button"
+              aria-label={`Show ${s.eyebrow}`}
+              onClick={() => setI(idx)}
+              className={cn("h-1.5 flex-1 rounded-full transition-opacity", idx === i ? "bg-foreground/70" : "bg-foreground/20")}
+            />
+          ))}
+        </div>
+        <button
+          type="button"
+          aria-label="Next highlight"
+          onClick={() => setI((v) => (v + 1) % count)}
+          className="grid size-8 place-items-center rounded-full bg-foreground/10 press"
+        >
+          <ChevronRight className="size-4" />
+        </button>
+      </div>
+    </section>
   );
 }
