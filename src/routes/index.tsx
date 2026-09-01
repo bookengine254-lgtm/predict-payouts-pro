@@ -1,10 +1,20 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { BadgeCheck, Flame, Clock, Plus, Sparkles, TrendingUp } from "lucide-react";
+import {
+  BadgeCheck,
+  Flame,
+  Clock,
+  ChevronLeft,
+  ChevronRight,
+  Gift,
+  LineChart,
+  Sparkles,
+  TrendingUp,
+} from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { MarketCard } from "@/components/market-card";
-import { InviteBanner, LearnBanner, PayoutBanner } from "@/components/banners";
-import { categories, currentUser, markets, totalPool, type CategoryId } from "@/lib/mock-data";
+import { LearnBanner } from "@/components/banners";
+import { currentUser, markets, totalPool, type CategoryId, type Market } from "@/lib/mock-data";
 import { formatKsh } from "@/lib/parimutuel";
 import { cn } from "@/lib/utils";
 import { toneSoft } from "@/components/tone";
@@ -51,11 +61,7 @@ type Sort = "trending" | "new" | "closing";
 
 function Discover() {
   const { category: searchCategory } = Route.useSearch();
-  const [category, setCategory] = useState<CategoryId | "all">(searchCategory ?? "all");
-
-  useEffect(() => {
-    setCategory(searchCategory ?? "all");
-  }, [searchCategory]);
+  const category: CategoryId | "all" = searchCategory ?? "all";
 
   const [sort, setSort] = useState<Sort>("trending");
 
@@ -71,7 +77,6 @@ function Discover() {
 
   const featured = open.filter((m) => m.featured);
   const resolved = markets.filter((m) => m.status === "resolved" || m.status === "disputed").slice(0, 4);
-  const volume = markets.reduce((sum, m) => sum + totalPool(m), 0);
 
 
   return (
@@ -159,48 +164,10 @@ function Discover() {
       <div className="mt-6">
         <LearnBanner />
       </div>
-
-      {/* Thumb-sized create button, Twitter-style */}
-      <Link
-        to="/create"
-        aria-label="Create a market"
-        className="fixed bottom-[calc(4.75rem+env(safe-area-inset-bottom))] left-4 z-40 grid size-14 place-items-center rounded-full bg-primary text-primary-foreground bevel-raised press lg:hidden"
-      >
-        <Plus className="size-7" />
-      </Link>
     </AppShell>
   );
 }
 
-
-function Chip({
-  label,
-  active,
-  onClick,
-  tone,
-}: {
-  label: string;
-  active: boolean;
-  onClick: () => void;
-  tone?: keyof typeof toneSoft;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        "shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors",
-        active
-          ? "border-primary bg-primary text-primary-foreground"
-          : tone
-            ? cn("border-transparent", toneSoft[tone])
-            : "border-border bg-card text-muted-foreground hover:text-foreground",
-      )}
-    >
-      {label}
-    </button>
-  );
-}
 
 function SectionHead({
   icon: Icon,
