@@ -76,50 +76,7 @@ function Discover() {
 
   return (
     <AppShell>
-      <section className="rounded-3xl border border-border bg-card p-5 shadow-card sm:p-7">
-        <p className="font-display text-[0.68rem] tracking-[0.2em] uppercase text-primary">Skill-based forecasting</p>
-        <h1 className="mt-2 max-w-2xl text-2xl leading-[1.1] font-semibold text-foreground sm:text-4xl">
-          Read the world better than the crowd. The pool pays the difference.
-        </h1>
-        <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground">
-          Every forecast joins one shared pool. No bookmaker sets odds, no house takes a side — accurate forecasters
-          split what the pool holds. Top up and cash out with M-Pesa.
-        </p>
-        <div className="mt-5 flex flex-wrap items-center gap-2">
-          <Link
-            to="/create"
-            className="rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
-          >
-            Launch your own market
-          </Link>
-          <Link
-            to="/how-it-works"
-            className="rounded-xl border border-border bg-background px-4 py-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-accent"
-          >
-            How payouts work
-          </Link>
-        </div>
-        <dl className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {[
-            { label: "Open pools", value: formatKsh(volume, { compact: true }), tone: "yes" as const },
-            { label: "Live markets", value: String(open.length), tone: "grape" as const },
-            { label: "Your accuracy", value: `${Math.round(currentUser.accuracy * 100)}%`, tone: "teal" as const },
-            { label: "Day streak", value: `${currentUser.streak}`, tone: "amber" as const },
-          ].map((s) => (
-            <div key={s.label} className={cn("rounded-xl px-3 py-2.5", toneSoft[s.tone])}>
-              <dt className="text-[0.68rem] font-medium opacity-80">{s.label}</dt>
-              <dd className="font-display text-xl leading-tight tabular">{s.value}</dd>
-            </div>
-          ))}
-        </dl>
-      </section>
-
-      <div className="mt-5 -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 hide-scrollbar lg:mx-0 lg:px-0">
-        <Chip active={category === "all"} onClick={() => setCategory("all")} label="All" />
-        {categories.map((c) => (
-          <Chip key={c.id} active={category === c.id} onClick={() => setCategory(c.id)} label={c.label} tone={c.tone} />
-        ))}
-      </div>
+      <HeroSlider top={visible[0] ?? open[0]} />
 
       <section className="mt-6">
         <SectionHead icon={Flame} title="Featured pools" hint="Deepest liquidity right now" />
@@ -130,10 +87,6 @@ function Discover() {
         </div>
       </section>
 
-      <div className="mt-6 grid gap-3 lg:grid-cols-2">
-        <PayoutBanner />
-        <InviteBanner />
-      </div>
 
       <section className="mt-8">
         <div className="flex flex-wrap items-center justify-between gap-2">
