@@ -25,6 +25,7 @@ import { cn } from "@/lib/utils";
 import { categories, currentUser, markets, totalPool } from "@/lib/mock-data";
 import { formatKsh } from "@/lib/parimutuel";
 import { useAuth } from "@/hooks/use-auth";
+import { useNavCollapse } from "@/hooks/use-nav-collapse";
 
 /** Bottom nav: four destinations plus the rewards gift in the middle. Creating a
  * market lives on the home feed as a thumb-reach floating button instead. */
@@ -198,12 +199,17 @@ function MarketSearch() {
 }
 
 
-function TopBar() {
+function TopBar({ compact = false }: { compact?: boolean }) {
   const { account, openAuth, signOut } = useAuth();
 
   return (
     <header>
-      <div className="mx-auto grid max-w-[1500px] grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-4 py-2.5 lg:gap-6 lg:px-8">
+      <div
+        className={cn(
+          "mx-auto grid max-w-[1500px] grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-4 transition-[padding] duration-300 lg:gap-6 lg:px-8 lg:py-2.5",
+          compact ? "py-1.5" : "py-2.5",
+        )}
+      >
         <Logo />
 
         <nav className="hidden items-center gap-1 lg:flex">
@@ -312,12 +318,17 @@ function MenuRail() {
   );
 }
 
-function BottomNav() {
+function BottomNav({ collapsed = false }: { collapsed?: boolean }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const isActive = (to: string) => (to === "/" ? pathname === "/" : pathname.startsWith(`/${to.split("/")[1]}`));
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-lg lg:hidden">
+    <nav
+      className={cn(
+        "fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-lg transition-transform duration-300 ease-out lg:hidden",
+        collapsed ? "translate-y-[110%]" : "translate-y-0",
+      )}
+    >
       <ul className="grid grid-cols-5">
         {primaryNav.slice(0, 2).map((item) => (
           <NavItem key={item.label} {...item} active={isActive(item.to)} />
