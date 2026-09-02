@@ -18,7 +18,7 @@ export function MarketThumb({
   className?: string;
 }) {
   const tone = categoryOf(market.category).tone;
-  const dims = size === "sm" ? "size-8 text-base" : size === "lg" ? "size-14 text-2xl" : "size-11 text-lg";
+  const dims = size === "sm" ? "size-9 text-lg" : size === "lg" ? "size-16 text-3xl" : "size-13 text-xl";
 
   if (market.thumbnail) {
     return (

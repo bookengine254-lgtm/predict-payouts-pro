@@ -20,6 +20,8 @@ export interface Account {
   name: string;
   initials: string;
   phone: string;
+  bio: string;
+  avatar: string | null;
   provider: "password" | "google";
   smsUpdates: boolean;
   mpesaReady: boolean;
@@ -60,6 +62,8 @@ interface AuthValue {
     smsUpdates: boolean;
     joinedCommunity: boolean;
   }) => void;
+  /** Profile customisation from Settings — persists to the local session. */
+  updateProfile: (patch: Partial<Pick<Account, "name" | "username" | "phone" | "bio" | "avatar" | "initials">>) => void;
   signOut: () => void;
 }
 
@@ -76,7 +80,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const raw = window.localStorage.getItem(KEY);
       if (raw) {
         const parsed = JSON.parse(raw) as Account;
-        setAccount(parsed);
+        setAccount({ bio: "", avatar: null, ...parsed });
         if (!parsed.onboarded) setOnboarding(true);
       }
     } catch {
@@ -104,6 +108,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         name: seed.replace(/[._-]+/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
         initials: initialsOf(seed),
         phone: "",
+        bio: "",
+        avatar: null,
         provider,
         smsUpdates: true,
         mpesaReady: false,
@@ -156,6 +162,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         };
         persist(next);
         setOnboarding(false);
+      },
+      updateProfile: (patch) => {
+        if (!account) return;
+        const username = patch.username?.toLowerCase().replace(/[^a-z0-9_]/g, "") ?? account.username;
+        const name = patch.name?.trim() || account.name;
+        persist({
+          ...account,
+          ...patch,
+          username: username || account.username,
+          name,
+          initials: patch.initials ?? initialsOf(name || username),
+        });
       },
       signOut: () => {
         persist(null);
