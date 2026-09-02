@@ -76,27 +76,44 @@ const footerLinks: { heading: string; links: { to: string; label: string }[] }[]
   },
 ];
 
+/** Routes that behave like a browsing feed keep the pills + search rows. */
+const FEED_ROUTES = ["/", "/leaderboard", "/activity"];
+
 export function AppShell({ children, wide = false }: { children: ReactNode; wide?: boolean }) {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const collapsed = useNavCollapse(pathname);
+  const isFeed = FEED_ROUTES.includes(pathname);
+  /* Discovery rows only belong on feeds, and fold away as soon as you scroll in. */
+  const showDiscovery = isFeed && !collapsed;
+
   return (
     <div className="flex min-h-screen flex-col bg-background">
       {/* One continuous sticky header: brand row, category pills, then search. */}
       <div className="sticky top-0 z-40 border-b border-border bg-background/90 backdrop-blur-lg">
-        <TopBar />
-        <RecommendationPills />
-        <MarketSearch />
+        <TopBar compact={collapsed} />
+        <div
+          className={cn(
+            "overflow-hidden transition-[max-height,opacity] duration-300 ease-out lg:max-h-none lg:opacity-100",
+            showDiscovery ? "max-h-40 opacity-100" : "max-h-0 opacity-0 lg:max-h-40",
+          )}
+        >
+          <RecommendationPills />
+          <MarketSearch />
+        </div>
       </div>
       <div className={cn("mx-auto flex w-full flex-1 gap-8 px-4 lg:px-8", wide ? "max-w-[1500px]" : "max-w-[1280px]")}>
         <MenuRail />
         <main className="min-w-0 flex-1 pt-4 pb-28 lg:pt-6 lg:pb-12">{children}</main>
       </div>
       <SiteFooter />
-      <BottomNav />
+      <BottomNav collapsed={collapsed} />
       <QuickActions />
       <AuthSheet />
       <OnboardingSheet />
     </div>
   );
 }
+
 
 /** Quick-jump category pills, visually fused to the brand row above them. */
 function RecommendationPills() {
