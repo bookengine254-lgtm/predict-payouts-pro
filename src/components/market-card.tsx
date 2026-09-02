@@ -55,11 +55,13 @@ export function MarketCard({ market }: { market: Market }) {
           </div>
         </div>
         <div className="flex flex-col items-end gap-0.5">
-          <span className="font-display text-xl leading-none tabular text-card-foreground">
+          <span className="font-display text-2xl leading-none tabular text-card-foreground">
             {formatPct(lead.prob)}
           </span>
+          <span className="text-[0.65rem] leading-none tracking-wide text-muted-foreground uppercase">chance</span>
           <Sparkline values={series} tone={delta >= 0 ? "yes" : "no"} />
         </div>
+
       </div>
 
       {resolvedOutcome ? (
