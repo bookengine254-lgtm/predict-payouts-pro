@@ -5,6 +5,7 @@ import {
   ChevronRight,
   Eye,
   Gauge,
+  ImagePlus,
   LogOut,
   Moon,
   Phone,
@@ -14,6 +15,7 @@ import {
   Sun,
   Trash2,
   Type,
+  UserRound,
   Volume2,
   Wallet,
 } from "lucide-react";
@@ -50,11 +52,29 @@ const SCALES: { id: TextScale; label: string; hint: string }[] = [
 ];
 
 function SettingsPage() {
-  const { signOut } = useAuth();
+  const { signOut, account, updateProfile, openAuth } = useAuth();
   const { prefs, set, reset } = usePrefs();
-  const [name, setName] = useState(currentUser.name);
-  const [handle, setHandle] = useState(currentUser.handle);
-  const [phone, setPhone] = useState("0712 345 214");
+  const [name, setName] = useState(account?.name ?? currentUser.name);
+  const [handle, setHandle] = useState(account?.username ?? currentUser.handle);
+  const [phone, setPhone] = useState(account?.phone || "0712 345 214");
+  const [bio, setBio] = useState(account?.bio ?? "Forecasting Kenyan politics, sport and the shilling.");
+  const [avatar, setAvatar] = useState<string | null>(account?.avatar ?? null);
+
+  const saveProfile = () => {
+    if (!account) {
+      openAuth("signup");
+      return;
+    }
+    updateProfile({ name, username: handle, phone, bio, avatar });
+    toast.success("Profile updated", { description: `You now show up as @${handle} across Polka.` });
+  };
+
+  const pickAvatar = (file: File | undefined) => {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => setAvatar(String(reader.result));
+    reader.readAsDataURL(file);
+  };
 
   return (
     <AppShell>
@@ -75,6 +95,59 @@ function SettingsPage() {
       </header>
 
       <div className="mt-5 grid gap-4 lg:grid-cols-2">
+        {/* ---------- Profile ---------- */}
+        <Section icon={UserRound} title="Your profile" hint="This is what other forecasters see on your markets.">
+          <div className="flex items-center gap-3">
+            {avatar ? (
+              <img src={avatar} alt="" className="size-16 shrink-0 rounded-2xl object-cover" />
+            ) : (
+              <span className="grid size-16 shrink-0 place-items-center rounded-2xl bg-primary-soft font-display text-2xl text-primary">
+                {(name || handle).slice(0, 2).toUpperCase()}
+              </span>
+            )}
+            <label className="flex-1">
+              <span className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-border py-3 text-xs font-semibold press hover:bg-accent">
+                <ImagePlus className="size-4" /> {avatar ? "Change photo" : "Upload a photo"}
+              </span>
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => pickAvatar(e.target.files?.[0])}
+              />
+            </label>
+            {avatar && (
+              <button
+                type="button"
+                onClick={() => setAvatar(null)}
+                className="shrink-0 rounded-xl border border-border px-3 py-3 text-xs font-semibold text-muted-foreground press hover:bg-accent"
+              >
+                Remove
+              </button>
+            )}
+          </div>
+          <Input label="Display name" value={name} onChange={setName} />
+          <Input label="Handle" value={handle} onChange={setHandle} prefix="@" />
+          <label className="block">
+            <span className="mb-1.5 block text-xs font-medium text-muted-foreground">Short bio</span>
+            <textarea
+              value={bio}
+              onChange={(e) => setBio(e.target.value)}
+              rows={3}
+              maxLength={160}
+              className="w-full resize-none rounded-xl border border-border bg-background px-3 py-2.5 text-sm outline-none focus:border-primary"
+            />
+            <span className="mt-1 block text-[0.7rem] text-muted-foreground">{160 - bio.length} characters left</span>
+          </label>
+          <button
+            type="button"
+            onClick={saveProfile}
+            className="w-full rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground bevel press"
+          >
+            Save profile
+          </button>
+        </Section>
+
         {/* ---------- Appearance ---------- */}
         <Section icon={Moon} title="Appearance" hint="Dark is the house style. Light is there when you need it.">
           <div className="grid grid-cols-2 gap-2">
@@ -200,12 +273,13 @@ function SettingsPage() {
 
         {/* ---------- Account & payouts ---------- */}
         <Section icon={Wallet} title="Account & payouts" hint="Withdrawals only ever go to the number you paid from.">
-          <Input label="Display name" value={name} onChange={setName} />
-          <Input label="Handle" value={handle} onChange={setHandle} prefix="@" />
           <Input label="M-Pesa number" value={phone} onChange={setPhone} icon={Smartphone} />
           <button
             type="button"
-            onClick={() => toast.success("Account details saved", { description: "Your payout number is verified." })}
+            onClick={() => {
+              if (account) updateProfile({ phone });
+              toast.success("Account details saved", { description: "Your payout number is verified." });
+            }}
             className="w-full rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground bevel press"
           >
             Save account details

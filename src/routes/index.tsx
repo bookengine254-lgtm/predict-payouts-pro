@@ -75,22 +75,27 @@ function Discover() {
     return sorted;
   }, [category, sort, open]);
 
-  const featured = open.filter((m) => m.featured);
-  const resolved = markets.filter((m) => m.status === "resolved" || m.status === "disputed").slice(0, 4);
+  const inCategory = (m: Market) => category === "all" || m.category === category;
+  const featured = open.filter((m) => m.featured && inCategory(m));
+  const resolved = markets
+    .filter((m) => (m.status === "resolved" || m.status === "disputed") && inCategory(m))
+    .slice(0, 4);
 
 
   return (
     <AppShell>
       <HeroSlider top={visible[0] ?? open[0]} />
 
-      <section className="mt-6">
-        <SectionHead icon={Flame} title="Featured pools" hint="Deepest liquidity right now" />
-        <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-          {featured.map((m) => (
-            <MarketCard key={m.id} market={m} />
-          ))}
-        </div>
-      </section>
+      {featured.length > 0 && (
+        <section className="mt-6">
+          <SectionHead icon={Flame} title="Featured pools" hint="Deepest liquidity right now" />
+          <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {featured.map((m) => (
+              <MarketCard key={m.id} market={m} />
+            ))}
+          </div>
+        </section>
+      )}
 
 
       <section className="mt-8">

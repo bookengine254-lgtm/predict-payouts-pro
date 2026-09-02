@@ -25,6 +25,7 @@ import { cn } from "@/lib/utils";
 import { categories, currentUser, markets, totalPool } from "@/lib/mock-data";
 import { formatKsh } from "@/lib/parimutuel";
 import { useAuth } from "@/hooks/use-auth";
+import { useNavCollapse } from "@/hooks/use-nav-collapse";
 
 /** Bottom nav: four destinations plus the rewards gift in the middle. Creating a
  * market lives on the home feed as a thumb-reach floating button instead. */
@@ -76,27 +77,44 @@ const footerLinks: { heading: string; links: { to: string; label: string }[] }[]
   },
 ];
 
+/** Routes that behave like a browsing feed keep the pills + search rows. */
+const FEED_ROUTES = ["/", "/leaderboard", "/activity"];
+
 export function AppShell({ children, wide = false }: { children: ReactNode; wide?: boolean }) {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const collapsed = useNavCollapse(pathname);
+  const isFeed = FEED_ROUTES.includes(pathname);
+  /* Discovery rows only belong on feeds, and fold away as soon as you scroll in. */
+  const showDiscovery = isFeed && !collapsed;
+
   return (
     <div className="flex min-h-screen flex-col bg-background">
       {/* One continuous sticky header: brand row, category pills, then search. */}
       <div className="sticky top-0 z-40 border-b border-border bg-background/90 backdrop-blur-lg">
-        <TopBar />
-        <RecommendationPills />
-        <MarketSearch />
+        <TopBar compact={collapsed} />
+        <div
+          className={cn(
+            "overflow-hidden transition-[max-height,opacity] duration-300 ease-out lg:max-h-none lg:opacity-100",
+            showDiscovery ? "max-h-40 opacity-100" : "max-h-0 opacity-0 lg:max-h-40",
+          )}
+        >
+          <RecommendationPills />
+          <MarketSearch />
+        </div>
       </div>
       <div className={cn("mx-auto flex w-full flex-1 gap-8 px-4 lg:px-8", wide ? "max-w-[1500px]" : "max-w-[1280px]")}>
         <MenuRail />
         <main className="min-w-0 flex-1 pt-4 pb-28 lg:pt-6 lg:pb-12">{children}</main>
       </div>
       <SiteFooter />
-      <BottomNav />
+      <BottomNav collapsed={collapsed} />
       <QuickActions />
       <AuthSheet />
       <OnboardingSheet />
     </div>
   );
 }
+
 
 /** Quick-jump category pills, visually fused to the brand row above them. */
 function RecommendationPills() {
@@ -181,12 +199,17 @@ function MarketSearch() {
 }
 
 
-function TopBar() {
+function TopBar({ compact = false }: { compact?: boolean }) {
   const { account, openAuth, signOut } = useAuth();
 
   return (
     <header>
-      <div className="mx-auto grid max-w-[1500px] grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-4 py-2.5 lg:gap-6 lg:px-8">
+      <div
+        className={cn(
+          "mx-auto grid max-w-[1500px] grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-4 transition-[padding] duration-300 lg:gap-6 lg:px-8 lg:py-2.5",
+          compact ? "py-1.5" : "py-2.5",
+        )}
+      >
         <Logo />
 
         <nav className="hidden items-center gap-1 lg:flex">
@@ -295,12 +318,17 @@ function MenuRail() {
   );
 }
 
-function BottomNav() {
+function BottomNav({ collapsed = false }: { collapsed?: boolean }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const isActive = (to: string) => (to === "/" ? pathname === "/" : pathname.startsWith(`/${to.split("/")[1]}`));
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-lg lg:hidden">
+    <nav
+      className={cn(
+        "fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-lg transition-transform duration-300 ease-out lg:hidden",
+        collapsed ? "translate-y-[110%]" : "translate-y-0",
+      )}
+    >
       <ul className="grid grid-cols-5">
         {primaryNav.slice(0, 2).map((item) => (
           <NavItem key={item.label} {...item} active={isActive(item.to)} />

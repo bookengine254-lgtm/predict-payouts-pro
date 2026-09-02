@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react";
 import {
+  Area,
+  AreaChart,
   CartesianGrid,
-  Line,
-  LineChart,
   ResponsiveContainer,
   Tooltip as ReTooltip,
   XAxis,
@@ -56,8 +56,8 @@ export function OddsChart({ market }: { market: Market }) {
   }, [data, visible]);
 
   return (
-    <section className="rounded-2xl border border-border bg-card p-4 bevel">
-      <div className="flex flex-wrap items-center justify-between gap-2">
+    <section className="-mx-4 border-y border-border bg-card py-4 sm:mx-0 sm:rounded-2xl sm:border sm:bevel">
+      <div className="flex flex-wrap items-center justify-between gap-2 px-4">
         <h2 className="text-base font-semibold">Odds trend</h2>
         <div className="flex gap-1 rounded-xl bg-secondary p-0.5">
           {RANGES.map(([r]) => (
@@ -76,7 +76,7 @@ export function OddsChart({ market }: { market: Market }) {
         </div>
       </div>
 
-      <div className="mt-3 -mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1 hide-scrollbar">
+      <div className="mt-3 flex gap-1.5 overflow-x-auto px-4 pb-1 hide-scrollbar">
         <button
           type="button"
           onClick={() => setFocus("all")}
@@ -104,10 +104,18 @@ export function OddsChart({ market }: { market: Market }) {
         ))}
       </div>
 
-      <div className="mt-3 h-64">
+      <div className="mt-3 h-72 pr-1 sm:pr-3">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={data} margin={{ top: 8, right: 8, left: -14, bottom: 0 }}>
-            <CartesianGrid stroke="var(--border)" vertical={false} />
+          <AreaChart data={data} margin={{ top: 8, right: 4, left: 0, bottom: 0 }}>
+            <defs>
+              {visible.map((o) => (
+                <linearGradient key={o.id} id={`fill-${o.id}`} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={toneStroke[o.tone]} stopOpacity={0.28} />
+                  <stop offset="100%" stopColor={toneStroke[o.tone]} stopOpacity={0} />
+                </linearGradient>
+              ))}
+            </defs>
+            <CartesianGrid stroke="var(--border)" strokeDasharray="3 5" vertical={false} />
             <XAxis
               dataKey="t"
               tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
@@ -122,9 +130,11 @@ export function OddsChart({ market }: { market: Market }) {
               tickFormatter={(v: number) => `${v}%`}
               tickLine={false}
               axisLine={false}
-              width={40}
+              orientation="right"
+              width={42}
             />
             <ReTooltip
+              cursor={{ stroke: "var(--muted-foreground)", strokeDasharray: "4 4" }}
               contentStyle={{
                 background: "var(--popover)",
                 border: "1px solid var(--border)",
@@ -137,18 +147,21 @@ export function OddsChart({ market }: { market: Market }) {
               ]}
             />
             {visible.map((o) => (
-              <Line
+              <Area
                 key={o.id}
                 type="monotone"
                 dataKey={o.id}
                 stroke={toneStroke[o.tone]}
-                strokeWidth={2.2}
+                strokeWidth={2.4}
+                fill={`url(#fill-${o.id})`}
+                fillOpacity={visible.length > 2 ? 0.35 : 1}
                 dot={false}
-                activeDot={{ r: 3.5 }}
-                animationDuration={550}
+                activeDot={{ r: 4, strokeWidth: 0 }}
+                animationDuration={650}
+                animationEasing="ease-out"
               />
             ))}
-          </LineChart>
+          </AreaChart>
         </ResponsiveContainer>
       </div>
     </section>
