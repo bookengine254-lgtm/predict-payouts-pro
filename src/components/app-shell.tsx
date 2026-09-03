@@ -80,27 +80,55 @@ const footerLinks: { heading: string; links: { to: string; label: string }[] }[]
 /** Routes that behave like a browsing feed keep the pills + search rows. */
 const FEED_ROUTES = ["/", "/leaderboard", "/activity"];
 
+/** Mobile titles for the back-nav bar on non-feed pages. */
+const PAGE_TITLES: Record<string, string> = {
+  "/portfolio": "Portfolio",
+  "/wallet": "Wallet",
+  "/create": "New market",
+  "/invite": "Rewards",
+  "/payouts": "Payouts",
+  "/disputes": "Resolutions",
+  "/settings": "Settings",
+  "/how-it-works": "How it works",
+  "/market": "Market",
+  "/profile": "Profile",
+};
+
+function titleFor(pathname: string) {
+  if (PAGE_TITLES[pathname]) return PAGE_TITLES[pathname]!;
+  const root = `/${pathname.split("/")[1] ?? ""}`;
+  return PAGE_TITLES[root] ?? "Polka";
+}
+
 export function AppShell({ children, wide = false }: { children: ReactNode; wide?: boolean }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const collapsed = useNavCollapse(pathname);
   const isFeed = FEED_ROUTES.includes(pathname);
-  /* Discovery rows only belong on feeds, and fold away as soon as you scroll in. */
-  const showDiscovery = isFeed && !collapsed;
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      {/* One continuous sticky header: brand row, category pills, then search. */}
-      <div className="sticky top-0 z-40 border-b border-border bg-background/90 backdrop-blur-lg">
-        <TopBar compact={collapsed} />
-        <div
-          className={cn(
-            "overflow-hidden transition-[max-height,opacity] duration-300 ease-out lg:max-h-none lg:opacity-100",
-            showDiscovery ? "max-h-40 opacity-100" : "max-h-0 opacity-0 lg:max-h-40",
-          )}
-        >
-          <RecommendationPills />
-          <MarketSearch />
-        </div>
+      {/* One continuous sticky header. On mobile it slides away on scroll-down
+          and returns on any upward intent; on desktop it always stays. */}
+      <div
+        className={cn(
+          "sticky top-0 z-40 bg-background/90 backdrop-blur-lg transition-transform duration-300 ease-out lg:translate-y-0",
+          isFeed ? "border-b border-border" : "border-b border-border/60",
+          collapsed ? "-translate-y-full" : "translate-y-0",
+        )}
+      >
+        <TopBar compact={collapsed} back={!isFeed} title={titleFor(pathname)} />
+        {isFeed && (
+          <div className="hidden lg:block">
+            <RecommendationPills />
+            <MarketSearch />
+          </div>
+        )}
+        {isFeed && (
+          <div className="lg:hidden">
+            <RecommendationPills />
+            <MarketSearch />
+          </div>
+        )}
       </div>
       <div className={cn("mx-auto flex w-full flex-1 gap-8 px-4 lg:px-8", wide ? "max-w-[1500px]" : "max-w-[1280px]")}>
         <MenuRail />
