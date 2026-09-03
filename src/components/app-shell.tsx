@@ -1,8 +1,9 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useRouter, useRouterState } from "@tanstack/react-router";
 import { useState, type ReactNode } from "react";
 import {
   Bell,
   BarChart3,
+  ChevronLeft,
   Compass,
   Gavel,
   Gift,
