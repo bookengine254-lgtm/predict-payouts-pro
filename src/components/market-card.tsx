@@ -27,7 +27,13 @@ export function MarketCard({ market }: { market: Market }) {
     .map((o, i) => ({ ...o, prob: probs[i] ?? 0 }))
     .sort((a, b) => b.prob - a.prob);
   const isBinary = market.outcomes.length === 2;
-  const shown = isBinary ? market.outcomes.map((o, i) => ({ ...o, prob: probs[i] ?? 0 })) : ranked.slice(0, 2);
+  const all = market.outcomes.map((o, i) => ({ ...o, prob: probs[i] ?? 0 }));
+  /* Fixtures read best in fixture order (Home / Draw / Away) when they fit. */
+  const shown = isBinary
+    ? all
+    : market.kind === "sports" && market.outcomes.length <= 3
+      ? all
+      : ranked.slice(0, 2);
   const hidden = market.outcomes.length - shown.length;
   const lead = ranked[0]!;
   /* Binary markets headline the Yes side as "chance"; multi/sports headline the leader. */
