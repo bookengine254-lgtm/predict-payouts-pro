@@ -221,8 +221,17 @@ function MarketSearch() {
 }
 
 
-function TopBar({ compact = false }: { compact?: boolean }) {
+function TopBar({
+  compact = false,
+  back = false,
+  title = "Polka",
+}: {
+  compact?: boolean;
+  back?: boolean;
+  title?: string;
+}) {
   const { account, openAuth, signOut } = useAuth();
+  const router = useRouter();
 
   return (
     <header>
@@ -232,7 +241,24 @@ function TopBar({ compact = false }: { compact?: boolean }) {
           compact ? "py-1.5" : "py-2.5",
         )}
       >
-        <Logo />
+        {back ? (
+          <>
+            {/* Mobile: back arrow + page title. Desktop keeps the wordmark. */}
+            <button
+              type="button"
+              onClick={() => router.history.back()}
+              aria-label="Go back"
+              className="grid size-9 place-items-center rounded-full bg-secondary/70 text-foreground press lg:hidden"
+            >
+              <ChevronLeft className="size-5" />
+            </button>
+            <span className="hidden lg:block">
+              <Logo />
+            </span>
+          </>
+        ) : (
+          <Logo />
+        )}
 
         <nav className="hidden items-center gap-1 lg:flex">
           {railNav.slice(0, 5).map((item) => (
