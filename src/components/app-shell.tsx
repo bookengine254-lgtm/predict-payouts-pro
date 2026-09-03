@@ -242,7 +242,7 @@ function TopBar({
         )}
       >
         {back ? (
-          <>
+          <div className="flex items-center">
             {/* Mobile: back arrow + page title. Desktop keeps the wordmark. */}
             <button
               type="button"
@@ -255,7 +255,7 @@ function TopBar({
             <span className="hidden lg:block">
               <Logo />
             </span>
-          </>
+          </div>
         ) : (
           <Logo />
         )}
@@ -272,7 +272,7 @@ function TopBar({
             </Link>
           ))}
         </nav>
-        <div className="lg:hidden" />
+        <span className="min-w-0 truncate text-sm font-semibold lg:hidden">{back ? title : ""}</span>
 
         <div className="flex items-center gap-1.5">
           {account ? (
