@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 import { formatKsh, formatPct, timeLeft } from "@/lib/parimutuel";
 import { categoryOf, probabilities, totalPool, trendDelta, type Market } from "@/lib/mock-data";
-import { MarketThumb } from "./market-thumb";
+import { MarketThumb, VersusThumb } from "./market-thumb";
 import { Sparkline } from "./sparkline";
 import { toneSoft } from "./tone";
 import { BadgeCheck, TrendingDown, TrendingUp, Users } from "lucide-react";
@@ -27,9 +27,18 @@ export function MarketCard({ market }: { market: Market }) {
     .map((o, i) => ({ ...o, prob: probs[i] ?? 0 }))
     .sort((a, b) => b.prob - a.prob);
   const isBinary = market.outcomes.length === 2;
-  const shown = isBinary ? market.outcomes.map((o, i) => ({ ...o, prob: probs[i] ?? 0 })) : ranked.slice(0, 2);
+  const all = market.outcomes.map((o, i) => ({ ...o, prob: probs[i] ?? 0 }));
+  /* Fixtures read best in fixture order (Home / Draw / Away) when they fit. */
+  const shown = isBinary
+    ? all
+    : market.kind === "sports" && market.outcomes.length <= 3
+      ? all
+      : ranked.slice(0, 2);
   const hidden = market.outcomes.length - shown.length;
   const lead = ranked[0]!;
+  /* Binary markets headline the Yes side as "chance"; multi/sports headline the leader. */
+  const headline = isBinary ? { label: "chance", prob: probs[0] ?? 0 } : { label: lead.label, prob: lead.prob };
+  const isVersus = market.kind === "sports" && Boolean(market.sports);
 
   return (
     <Link
@@ -38,7 +47,7 @@ export function MarketCard({ market }: { market: Market }) {
       className="group flex flex-col gap-3 rounded-2xl border border-border bg-card p-3 shadow-card transition-all hover:-translate-y-0.5 hover:shadow-lift focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
     >
       <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-3">
-        <MarketThumb market={market} />
+        {isVersus ? <VersusThumb market={market} /> : <MarketThumb market={market} />}
         <div className="min-w-0">
           <h3 className="line-clamp-2 text-[0.95rem] leading-snug font-medium tracking-normal text-card-foreground">
             {market.question}
@@ -54,11 +63,14 @@ export function MarketCard({ market }: { market: Market }) {
             <span className="shrink-0 tabular">{market.resolved ? "Resolved" : timeLeft(market.closesAt)}</span>
           </div>
         </div>
-        <div className="flex flex-col items-end gap-0.5">
+        <div className="flex max-w-[5.5rem] flex-col items-end gap-0.5">
           <span className="font-display text-2xl leading-none tabular text-card-foreground">
-            {formatPct(lead.prob)}
+            {formatPct(headline.prob)}
           </span>
-          <span className="text-[0.65rem] leading-none tracking-wide text-muted-foreground uppercase">chance</span>
+          {/* Yes/No markets read as "chance"; everything else labels the leader. */}
+          <span className="w-full truncate text-right text-[0.65rem] leading-none tracking-wide text-muted-foreground uppercase">
+            {isBinary ? "chance" : headline.label}
+          </span>
           <Sparkline values={series} tone={delta >= 0 ? "yes" : "no"} />
         </div>
 
