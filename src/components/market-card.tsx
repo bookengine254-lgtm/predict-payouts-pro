@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 import { formatKsh, formatPct, timeLeft } from "@/lib/parimutuel";
 import { categoryOf, probabilities, totalPool, trendDelta, type Market } from "@/lib/mock-data";
-import { MarketThumb } from "./market-thumb";
+import { MarketThumb, VersusThumb } from "./market-thumb";
 import { Sparkline } from "./sparkline";
 import { toneSoft } from "./tone";
 import { BadgeCheck, TrendingDown, TrendingUp, Users } from "lucide-react";
@@ -30,6 +30,9 @@ export function MarketCard({ market }: { market: Market }) {
   const shown = isBinary ? market.outcomes.map((o, i) => ({ ...o, prob: probs[i] ?? 0 })) : ranked.slice(0, 2);
   const hidden = market.outcomes.length - shown.length;
   const lead = ranked[0]!;
+  /* Binary markets headline the Yes side as "chance"; multi/sports headline the leader. */
+  const headline = isBinary ? { label: "chance", prob: probs[0] ?? 0 } : { label: lead.label, prob: lead.prob };
+  const isVersus = market.kind === "sports" && Boolean(market.sports);
 
   return (
     <Link
