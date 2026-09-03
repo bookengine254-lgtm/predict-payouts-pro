@@ -44,6 +44,8 @@ export interface Market {
   /** binary (default) | multi-outcome | custom sports fixture */
   kind?: "binary" | "multi" | "sports";
   sports?: { home: string; away: string; league: string; kickoff: string };
+  /** Optional side-by-side crest/photo pair for versus (fixture) cards. */
+  versus?: { homeThumb?: string; awayThumb?: string; homeEmoji: string; awayEmoji: string };
   thumbnail?: string;
   thumbnailEmoji: string;
   outcomes: Outcome[];
@@ -532,6 +534,7 @@ const multiMarkets: Market[] = [
     thumbnailEmoji: "🏟️",
     kind: "sports",
     sports: { home: "Gor Mahia", away: "AFC Leopards", league: "KPL", kickoff: inDays(2) },
+    versus: { homeEmoji: "🟢", awayEmoji: "🔵" },
     outcomes: [
       { id: "home", label: "Gor Mahia", pool: 268_000, tone: "yes" },
       { id: "draw", label: "Draw", pool: 141_000, tone: "amber" },
