@@ -38,7 +38,7 @@ export function MarketCard({ market }: { market: Market }) {
       className="group flex flex-col gap-3 rounded-2xl border border-border bg-card p-3 shadow-card transition-all hover:-translate-y-0.5 hover:shadow-lift focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
     >
       <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-3">
-        <MarketThumb market={market} />
+        {isVersus ? <VersusThumb market={market} /> : <MarketThumb market={market} />}
         <div className="min-w-0">
           <h3 className="line-clamp-2 text-[0.95rem] leading-snug font-medium tracking-normal text-card-foreground">
             {market.question}
@@ -54,11 +54,14 @@ export function MarketCard({ market }: { market: Market }) {
             <span className="shrink-0 tabular">{market.resolved ? "Resolved" : timeLeft(market.closesAt)}</span>
           </div>
         </div>
-        <div className="flex flex-col items-end gap-0.5">
+        <div className="flex max-w-[5.5rem] flex-col items-end gap-0.5">
           <span className="font-display text-2xl leading-none tabular text-card-foreground">
-            {formatPct(lead.prob)}
+            {formatPct(headline.prob)}
           </span>
-          <span className="text-[0.65rem] leading-none tracking-wide text-muted-foreground uppercase">chance</span>
+          {/* Yes/No markets read as "chance"; everything else labels the leader. */}
+          <span className="w-full truncate text-right text-[0.65rem] leading-none tracking-wide text-muted-foreground uppercase">
+            {isBinary ? "chance" : headline.label}
+          </span>
           <Sparkline values={series} tone={delta >= 0 ? "yes" : "no"} />
         </div>
 
