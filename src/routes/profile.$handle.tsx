@@ -51,11 +51,15 @@ function Profile() {
           returns: currentUser.balance,
           followers: currentUser.referrals,
           creatorEarnings: currentUser.referralEarnings,
-          bio: "New forecaster on Polka. Building an accuracy record one pool at a time.",
+          bio:
+            account.bio?.trim() ||
+            "New forecaster on Polka. Building an accuracy record one pool at a time.",
         } satisfies Person)
       : null;
 
   const person = found ?? own;
+  /* Only your own profile can show the photo saved in Settings. */
+  const avatar = own && person === own ? account?.avatar : null;
 
   if (!person) {
     return (
@@ -88,11 +92,20 @@ function Profile() {
 
   return (
     <AppShell>
-      <header className="rounded-2xl border border-border bg-card p-4 shadow-card sm:p-5">
+      <header className="rounded-2xl bg-card p-4 bevel sm:p-5">
         <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-3">
-          <span className={cn("grid size-14 shrink-0 place-items-center rounded-full font-display text-lg", toneSoft[person.tone])}>
-            {person.initials}
-          </span>
+          {avatar ? (
+            <img src={avatar} alt={person.name} className="size-14 shrink-0 rounded-full object-cover" />
+          ) : (
+            <span
+              className={cn(
+                "grid size-14 shrink-0 place-items-center rounded-full font-display text-lg",
+                toneSoft[person.tone],
+              )}
+            >
+              {person.initials}
+            </span>
+          )}
           <div className="min-w-0">
             <h1 className="truncate text-lg font-semibold sm:text-2xl">{person.name}</h1>
             <p className="truncate text-xs text-muted-foreground">@{person.handle}</p>
@@ -107,7 +120,7 @@ function Profile() {
         </dl>
         <Link
           to="/settings"
-          className="mt-4 flex items-center gap-3 rounded-xl border border-border p-3 press hover:bg-accent"
+          className="mt-4 flex items-center gap-3 rounded-xl bg-secondary/50 p-3 press hover:bg-accent"
         >
           <span className="grid size-9 shrink-0 place-items-center rounded-full bg-primary-soft text-primary">
             <Settings className="size-4" />
