@@ -1,22 +1,27 @@
 import { useEffect, useRef, useState } from "react";
 
 /**
- * Mobile chrome auto-collapse.
+ * Mobile chrome auto-hide.
  *
- * Rules, deliberately conservative so navigation never feels lost:
- * - Collapse only after the reader has committed to the page (past `threshold`).
- * - Collapse on downward intent, restore immediately on any upward intent.
- * - Always expanded at the very top of a page and after a route change.
- * - Small jitter (< 6px) is ignored so momentum scrolling doesn't flicker.
+ * Rules, tuned so the bars never flicker:
+ * - Always visible near the top of a page and right after a route change.
+ * - Direction changes only count once the reader has moved a meaningful
+ *   distance (`travel`) in that direction, which kills momentum jitter.
+ * - Hidden only while scrolling down past `threshold`; any real upward
+ *   intent brings the chrome straight back.
  */
-export function useNavCollapse(key: string, threshold = 96) {
+export function useNavCollapse(key: string, threshold = 120, travel = 28) {
   const [collapsed, setCollapsed] = useState(false);
   const lastY = useRef(0);
+  const anchor = useRef(0);
+  const dir = useRef<"up" | "down">("up");
   const frame = useRef(0);
 
   useEffect(() => {
     setCollapsed(false);
     lastY.current = window.scrollY;
+    anchor.current = window.scrollY;
+    dir.current = "up";
   }, [key]);
 
   useEffect(() => {
@@ -24,12 +29,28 @@ export function useNavCollapse(key: string, threshold = 96) {
       if (frame.current) return;
       frame.current = window.requestAnimationFrame(() => {
         frame.current = 0;
-        const y = window.scrollY;
+        const y = Math.max(0, window.scrollY);
         const dy = y - lastY.current;
-        if (Math.abs(dy) < 6) return;
         lastY.current = y;
-        if (y < threshold) setCollapsed(false);
-        else setCollapsed(dy > 0);
+        if (dy === 0) return;
+
+        const nextDir = dy > 0 ? "down" : "up";
+        if (nextDir !== dir.current) {
+          // Direction flipped — restart measuring from here.
+          dir.current = nextDir;
+          anchor.current = y;
+          return;
+        }
+
+        if (y <= threshold) {
+          anchor.current = y;
+          setCollapsed(false);
+          return;
+        }
+
+        if (Math.abs(y - anchor.current) < travel) return;
+        anchor.current = y;
+        setCollapsed(nextDir === "down");
       });
     };
 
@@ -38,7 +59,7 @@ export function useNavCollapse(key: string, threshold = 96) {
       window.removeEventListener("scroll", onScroll);
       if (frame.current) window.cancelAnimationFrame(frame.current);
     };
-  }, [threshold]);
+  }, [threshold, travel]);
 
   return collapsed;
 }
