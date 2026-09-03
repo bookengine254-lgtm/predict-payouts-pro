@@ -45,3 +45,39 @@ export function MarketThumb({
     </span>
   );
 }
+
+/**
+ * Side-by-side crest pair for fixture (versus) markets. Occupies the same
+ * footprint as a single MarketThumb so a VS card never grows taller than the
+ * binary card beside it.
+ */
+export function VersusThumb({
+  market,
+  size = "md",
+  className,
+}: {
+  market: Pick<Market, "versus" | "sports" | "category" | "thumbnailEmoji">;
+  size?: "sm" | "md" | "lg";
+  className?: string;
+}) {
+  const tone = categoryOf(market.category).tone;
+  const dims = size === "sm" ? "size-8 text-sm" : size === "lg" ? "size-12 text-2xl" : "size-9.5 text-base";
+  const v = market.versus;
+
+  const side = (thumb: string | undefined, emoji: string, label: string) =>
+    thumb ? (
+      <img src={thumb} alt={label} loading="lazy" className={cn("rounded-lg object-cover", dims)} />
+    ) : (
+      <span aria-hidden="true" className={cn("grid place-items-center rounded-lg border border-border/60", toneSoft[tone], dims)}>
+        {emoji}
+      </span>
+    );
+
+  return (
+    <span className={cn("flex shrink-0 items-center gap-1", className)}>
+      {side(v?.homeThumb, v?.homeEmoji ?? market.thumbnailEmoji, market.sports?.home ?? "Home")}
+      <span className="font-display text-[0.6rem] tracking-wide text-muted-foreground">VS</span>
+      {side(v?.awayThumb, v?.awayEmoji ?? market.thumbnailEmoji, market.sports?.away ?? "Away")}
+    </span>
+  );
+}
