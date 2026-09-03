@@ -118,16 +118,10 @@ export function AppShell({ children, wide = false }: { children: ReactNode; wide
       >
         <TopBar compact={collapsed} back={!isFeed} title={titleFor(pathname)} />
         {isFeed && (
-          <div className="hidden lg:block">
+          <>
             <RecommendationPills />
             <MarketSearch />
-          </div>
-        )}
-        {isFeed && (
-          <div className="lg:hidden">
-            <RecommendationPills />
-            <MarketSearch />
-          </div>
+          </>
         )}
       </div>
       <div className={cn("mx-auto flex w-full flex-1 gap-8 px-4 lg:px-8", wide ? "max-w-[1500px]" : "max-w-[1280px]")}>
