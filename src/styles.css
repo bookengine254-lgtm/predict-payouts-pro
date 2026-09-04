@@ -181,19 +181,12 @@
   }
 
   /*
-   * One root scale drives every rem in the app. --app-scale comes from the
-   * user's text-size setting; small screens step up so type and tap targets are
-   * thumb-sized without any layout redesign — everything is expressed in rem,
-   * so proportions hold.
+   * One root scale drives every rem in the app. The default is the standard
+   * 16px so the UI reads at normal size on every device; --app-scale comes from
+   * the user's text-size setting for anyone who wants it larger.
    */
   html {
-    font-size: calc(17px * var(--app-scale, 1));
-  }
-
-  @media (max-width: 30rem) {
-    html {
-      font-size: calc(19.5px * var(--app-scale, 1));
-    }
+    font-size: calc(16px * var(--app-scale, 1));
   }
 
   /* Honour the in-app "reduce motion" preference and the OS setting. */
