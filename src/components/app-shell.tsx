@@ -176,8 +176,8 @@ function RecommendationPills() {
   );
 }
 
-/** Inline market search, sitting directly beneath the category pills. */
-function MarketSearch() {
+/** Market search — only mounted once the search icon in the top bar is tapped. */
+function MarketSearch({ onClose }: { onClose: () => void }) {
   const [q, setQ] = useState("");
   const term = q.trim().toLowerCase();
   const results = term
@@ -188,20 +188,24 @@ function MarketSearch() {
     : [];
 
   return (
-    <div className="relative mx-auto max-w-[1500px] px-4 pb-2 lg:px-8">
-      <label className="flex items-center gap-2 rounded-full bg-secondary/70 px-3.5 py-2">
+    <div className="relative mx-auto max-w-[1500px] px-4 pb-2.5 lg:px-8">
+      <label className="flex items-center gap-2 rounded-full bg-secondary/70 px-3.5 py-2 float-pop">
         <Search className="size-4 shrink-0 text-muted-foreground" />
         <input
+          autoFocus
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="Search markets — politics, Harambee Stars, BTC…"
           className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
         />
-        {q && (
-          <button type="button" onClick={() => setQ("")} aria-label="Clear search" className="text-muted-foreground">
-            <X className="size-4" />
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={() => (q ? setQ("") : onClose())}
+          aria-label={q ? "Clear search" : "Close search"}
+          className="text-muted-foreground"
+        >
+          <X className="size-4" />
+        </button>
       </label>
       {results.length > 0 && (
         <ul className="absolute inset-x-4 top-full z-50 max-h-[60vh] overflow-y-auto rounded-2xl border border-border bg-card p-1.5 shadow-card lg:inset-x-8">
