@@ -70,35 +70,38 @@ function WalletPage() {
         </p>
       </header>
 
-      <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
-        <div className="min-w-0 space-y-4">
-          <section className="rounded-2xl border border-border bg-primary p-5 text-primary-foreground shadow-card">
-            <p className="text-[0.7rem] opacity-80">Available balance</p>
-            <p className="font-display text-4xl leading-tight tabular">{formatKsh(currentUser.balance)}</p>
-            <div className="mt-4 grid grid-cols-3 gap-3 text-[0.7rem]">
-              <div>
-                <p className="opacity-70">In open pools</p>
-                <p className="font-display text-lg tabular">{formatKsh(currentUser.locked, { compact: true })}</p>
-              </div>
-              <div>
-                <p className="opacity-70">Claimable</p>
-                <p className="font-display text-lg tabular">KSh 1.2K</p>
-              </div>
-              <div>
-                <p className="opacity-70">Referral earnings</p>
-                <p className="font-display text-lg tabular">{formatKsh(currentUser.referralEarnings)}</p>
-              </div>
+      <div className="mt-5 grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
+        <div className="min-w-0 space-y-8">
+          {/* Balance hero — borderless, a single deep navy field with a soft glow. */}
+          <section className="relative overflow-hidden rounded-3xl bg-primary px-5 py-6 text-primary-foreground shadow-lift">
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute -top-16 -right-10 size-48 rounded-full bg-yes/25 blur-3xl"
+            />
+            <p className="text-xs opacity-75">Available balance</p>
+            <p className="font-display text-[2.75rem] leading-none tabular">{formatKsh(currentUser.balance)}</p>
+            <div className="mt-5 grid grid-cols-3 gap-4 text-xs">
+              {[
+                ["In open pools", formatKsh(currentUser.locked, { compact: true })],
+                ["Claimable", "KSh 1.2K"],
+                ["Referral earnings", formatKsh(currentUser.referralEarnings, { compact: true })],
+              ].map(([label, value]) => (
+                <div key={label}>
+                  <p className="opacity-65">{label}</p>
+                  <p className="font-display text-lg tabular">{value}</p>
+                </div>
+              ))}
             </div>
           </section>
 
-          <section className="rounded-2xl border border-border bg-card p-4 shadow-card">
+          <section>
             <h2 className="text-sm font-semibold">Ledger</h2>
-            <ul className="mt-3 divide-y divide-border">
+            <ul className="mt-2 divide-y divide-border/50">
               {transactions.map((t) => (
-                <li key={t.id} className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 py-2.5">
+                <li key={t.id} className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 py-3">
                   <span
                     className={cn(
-                      "grid size-9 shrink-0 place-items-center rounded-xl",
+                      "grid size-9 shrink-0 place-items-center rounded-full",
                       t.amount >= 0 ? "bg-yes-soft text-yes" : "bg-secondary text-muted-foreground",
                     )}
                   >
@@ -127,9 +130,9 @@ function WalletPage() {
           </section>
         </div>
 
-        <aside className="lg:sticky lg:top-20 lg:self-start">
-          <div className="rounded-2xl border border-border bg-card p-4 shadow-card">
-            <div className="flex gap-1 rounded-xl bg-secondary p-1">
+        <aside className="lg:sticky lg:top-24 lg:self-start">
+          <div className="rounded-3xl bg-card p-5 shadow-card">
+            <div className="flex gap-1 rounded-full bg-secondary/70 p-1">
               {(
                 [
                   ["topup", "Top up"],
@@ -144,7 +147,7 @@ function WalletPage() {
                     setPhase("idle");
                   }}
                   className={cn(
-                    "flex-1 rounded-lg py-1.5 text-xs font-semibold transition-colors",
+                    "flex-1 rounded-full py-2 text-xs font-semibold transition-colors",
                     mode === k ? "bg-card text-foreground shadow-card" : "text-muted-foreground",
                   )}
                 >
@@ -153,7 +156,7 @@ function WalletPage() {
               ))}
             </div>
 
-            <label className="mt-4 block text-xs font-medium text-muted-foreground" htmlFor="amount">
+            <label className="mt-5 block text-xs font-medium text-muted-foreground" htmlFor="amount">
               Amount (KSh)
             </label>
             <input
@@ -163,7 +166,7 @@ function WalletPage() {
               step={50}
               value={amount}
               onChange={(e) => setAmount(Math.max(0, Number(e.target.value)))}
-              className="mt-1 w-full rounded-xl border border-input bg-background px-3 py-2.5 font-display text-2xl tabular outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="mt-1 w-full rounded-2xl bg-secondary/60 px-4 py-3 font-display text-3xl tabular outline-none focus-visible:ring-2 focus-visible:ring-ring"
             />
             <div className="mt-2 flex gap-1.5">
               {[500, 1_000, 2_500, 5_000].map((v) => (
@@ -171,17 +174,20 @@ function WalletPage() {
                   key={v}
                   type="button"
                   onClick={() => setAmount(v)}
-                  className="flex-1 rounded-lg bg-secondary py-1.5 text-[0.7rem] font-semibold tabular transition-colors hover:bg-accent"
+                  className={cn(
+                    "flex-1 rounded-full py-1.5 text-[0.7rem] font-semibold tabular transition-colors",
+                    amount === v ? "bg-primary text-primary-foreground" : "bg-secondary/70 hover:bg-accent",
+                  )}
                 >
                   {v >= 1000 ? `${v / 1000}K` : v}
                 </button>
               ))}
             </div>
 
-            <label className="mt-3 block text-xs font-medium text-muted-foreground" htmlFor="phone">
+            <label className="mt-4 block text-xs font-medium text-muted-foreground" htmlFor="phone">
               M-Pesa number
             </label>
-            <div className="mt-1 flex items-center gap-2 rounded-xl border border-input bg-background px-3 py-2.5">
+            <div className="mt-1 flex items-center gap-2 rounded-2xl bg-secondary/60 px-4 py-3">
               <Phone className="size-4 shrink-0 text-muted-foreground" />
               <input
                 id="phone"
@@ -197,7 +203,7 @@ function WalletPage() {
                 disabled={amount <= 0}
                 onClick={startPush}
                 className={cn(
-                  "mt-4 flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-40",
+                  "mt-5 flex w-full items-center justify-center gap-2 rounded-2xl py-3.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-40 press",
                   mode === "topup" ? "bg-yes" : "bg-primary",
                 )}
               >
@@ -207,7 +213,7 @@ function WalletPage() {
             )}
 
             {(phase === "pushing" || phase === "waiting") && (
-              <div className="mt-4 rounded-xl border border-border bg-secondary/60 p-4 text-center float-pop">
+              <div className="mt-5 rounded-2xl bg-secondary/60 p-4 text-center float-pop">
                 <Loader2 className="mx-auto size-5 animate-spin text-primary" />
                 <p className="mt-2 text-sm font-semibold">
                   {phase === "pushing" ? "Sending STK push…" : "Check your phone"}
@@ -221,21 +227,21 @@ function WalletPage() {
             )}
 
             {phase === "done" && (
-              <div className="mt-4 rounded-xl bg-yes-soft p-4 text-center text-yes float-pop">
+              <div className="mt-5 rounded-2xl bg-yes-soft p-4 text-center text-yes float-pop">
                 <Check className="mx-auto size-6" />
                 <p className="mt-1 font-display text-xl tabular">{formatKsh(amount)}</p>
                 <p className="text-xs">{mode === "topup" ? "Added to your wallet" : "Sent to your M-Pesa"}</p>
                 <button
                   type="button"
                   onClick={() => setPhase("idle")}
-                  className="mt-3 w-full rounded-lg border border-yes/30 py-2 text-xs font-semibold"
+                  className="mt-3 w-full rounded-full bg-yes/15 py-2 text-xs font-semibold"
                 >
                   Done
                 </button>
               </div>
             )}
 
-            <ul className="mt-4 space-y-1.5 text-[0.68rem] text-muted-foreground">
+            <ul className="mt-5 space-y-1.5 text-[0.7rem] text-muted-foreground">
               <li className="flex items-center gap-1.5">
                 <ShieldCheck className="size-3 shrink-0 text-yes" /> Top-ups are free. Withdrawals cost KSh 25.
               </li>
@@ -250,7 +256,7 @@ function WalletPage() {
 
           <Link
             to="/invite"
-            className="mt-3 flex items-center gap-3 rounded-2xl border border-border bg-grape-soft p-4 text-grape transition-shadow hover:shadow-lift"
+            className="mt-4 flex items-center gap-3 rounded-3xl bg-grape-soft p-4 text-grape transition-shadow hover:shadow-lift"
           >
             <Gift className="size-5 shrink-0 tremble" />
             <span className="min-w-0 text-xs leading-relaxed">
