@@ -232,28 +232,24 @@ function MarketSearch({ onClose }: { onClose: () => void }) {
 
 
 function TopBar({
-  compact = false,
   back = false,
   title = "Polka",
+  searchOpen = false,
+  onToggleSearch,
 }: {
-  compact?: boolean;
   back?: boolean;
   title?: string;
+  searchOpen?: boolean;
+  onToggleSearch?: () => void;
 }) {
   const { account, openAuth, signOut } = useAuth();
   const router = useRouter();
 
   return (
     <header>
-      <div
-        className={cn(
-          "mx-auto grid max-w-[1500px] grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-4 transition-[padding] duration-300 lg:gap-6 lg:px-8 lg:py-2.5",
-          compact ? "py-1.5" : "py-2.5",
-        )}
-      >
-        {back ? (
-          <div className="flex items-center">
-            {/* Mobile: back arrow + page title. Desktop keeps the wordmark. */}
+      <div className="mx-auto grid max-w-[1500px] grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-4 py-2.5 lg:gap-6 lg:px-8">
+        <div className="flex items-center gap-1.5">
+          {back && (
             <button
               type="button"
               onClick={() => router.history.back()}
@@ -262,13 +258,9 @@ function TopBar({
             >
               <ChevronLeft className="size-5" />
             </button>
-            <span className="hidden lg:block">
-              <Logo />
-            </span>
-          </div>
-        ) : (
+          )}
           <Logo />
-        )}
+        </div>
 
         <nav className="hidden items-center gap-1 lg:flex">
           {railNav.slice(0, 5).map((item) => (
@@ -282,9 +274,23 @@ function TopBar({
             </Link>
           ))}
         </nav>
-        <span className="min-w-0 truncate text-sm font-semibold lg:hidden">{back ? title : ""}</span>
+        <span className="min-w-0 truncate text-xs font-semibold text-muted-foreground lg:hidden">
+          {back ? title : ""}
+        </span>
 
         <div className="flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={onToggleSearch}
+            aria-label={searchOpen ? "Close search" : "Search markets"}
+            aria-expanded={searchOpen}
+            className={cn(
+              "grid size-9 place-items-center rounded-full press",
+              searchOpen ? "bg-primary text-primary-foreground" : "bg-secondary/70 text-muted-foreground hover:text-foreground",
+            )}
+          >
+            <Search className="size-4.5" />
+          </button>
           {account ? (
             <>
               <Link
