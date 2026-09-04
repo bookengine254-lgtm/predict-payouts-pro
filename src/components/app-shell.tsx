@@ -105,25 +105,30 @@ export function AppShell({ children, wide = false }: { children: ReactNode; wide
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const collapsed = useNavCollapse(pathname);
   const isFeed = FEED_ROUTES.includes(pathname);
+  const [searchOpen, setSearchOpen] = useState(false);
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      {/* One continuous sticky header. On mobile it slides away on scroll-down
-          and returns on any upward intent; on desktop it always stays. */}
-      <div
-        className={cn(
-          "sticky top-0 z-40 bg-background/90 backdrop-blur-lg transition-transform duration-300 ease-out lg:translate-y-0",
-          isFeed ? "border-b border-border" : "border-b border-border/60",
-          collapsed ? "-translate-y-full" : "translate-y-0",
-        )}
-      >
-        <TopBar compact={collapsed} back={!isFeed} title={titleFor(pathname)} />
+      {/* Sticky header. The brand row is always there; only the category rail
+          folds away as you scroll into the feed. Search opens on demand. */}
+      <div className="sticky top-0 z-40 border-b border-border/60 bg-background/90 backdrop-blur-lg">
+        <TopBar
+          back={!isFeed}
+          title={titleFor(pathname)}
+          searchOpen={searchOpen}
+          onToggleSearch={() => setSearchOpen((v) => !v)}
+        />
         {isFeed && (
-          <>
+          <div
+            className={cn(
+              "overflow-hidden transition-[max-height,opacity] duration-300 ease-out",
+              collapsed && !searchOpen ? "max-h-0 opacity-0 lg:max-h-16 lg:opacity-100" : "max-h-16 opacity-100",
+            )}
+          >
             <RecommendationPills />
-            <MarketSearch />
-          </>
+          </div>
         )}
+        {searchOpen && <MarketSearch onClose={() => setSearchOpen(false)} />}
       </div>
       <div className={cn("mx-auto flex w-full flex-1 gap-8 px-4 lg:px-8", wide ? "max-w-[1500px]" : "max-w-[1280px]")}>
         <MenuRail />
