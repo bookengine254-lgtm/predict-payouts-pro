@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
-import { formatKsh, formatPct, timeLeft } from "@/lib/parimutuel";
+import { formatCount, formatKsh, formatPct, timeLeft } from "@/lib/parimutuel";
 import { categoryOf, probabilities, totalPool, trendDelta, type Market } from "@/lib/mock-data";
 import { MarketThumb, VersusThumb } from "./market-thumb";
 import { Sparkline } from "./sparkline";
