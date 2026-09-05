@@ -112,7 +112,7 @@ function MarketDetail() {
 
       <div className="grid gap-5 pb-32 lg:grid-cols-[minmax(0,1fr)_360px] lg:pb-0">
         <div className="min-w-0 space-y-4">
-          <header className="rounded-2xl border border-border bg-card p-4 bevel sm:p-5">
+          <header className="rounded-2xl bg-card p-4 bevel sm:p-5">
             <div className="grid grid-cols-[auto_minmax(0,1fr)] gap-3">
               <MarketThumb market={market} size="lg" />
               <div className="min-w-0">
@@ -164,7 +164,7 @@ function MarketDetail() {
                 description: "KSh 500 lands in your wallet once 10 invited forecasters deposit.",
               })
             }
-            className="flex w-full items-center gap-3 rounded-2xl border border-border bg-grape-soft p-4 text-left bevel press"
+            className="flex w-full items-center gap-3 rounded-2xl bg-grape-soft p-4 text-left bevel press"
           >
             <span className="grid size-10 shrink-0 place-items-center rounded-full bg-grape/15 text-grape">
               <Megaphone className="size-5" />
@@ -183,7 +183,7 @@ function MarketDetail() {
           <OddsChart market={market} />
 
           {/* Tabs */}
-          <section className="rounded-2xl border border-border bg-card p-4 bevel">
+          <section className="rounded-2xl bg-card p-4 bevel">
             <div className="-mx-1 flex gap-1 overflow-x-auto px-1 hide-scrollbar">
               {TABS.map((t) => (
                 <button
@@ -333,7 +333,7 @@ function MarketDetail() {
             </div>
           </section>
 
-          <section className="rounded-2xl border border-border bg-card p-4 bevel">
+          <section className="rounded-2xl bg-card p-4 bevel">
             <h2 className="text-sm font-semibold">Created by</h2>
             {creator && (
               <Link
@@ -371,7 +371,7 @@ function MarketDetail() {
         <aside className="lg:sticky lg:top-20 lg:self-start">
           <ForecastDock market={market} />
 
-          <div className="mt-3 hidden rounded-2xl border border-border bg-card p-4 bevel lg:block">
+          <div className="mt-3 hidden rounded-2xl bg-card p-4 bevel lg:block">
             <h3 className="text-sm font-semibold">Top forecasters here</h3>
             <ul className="mt-2 space-y-2">
               {people.slice(0, 4).map((p, i) => (

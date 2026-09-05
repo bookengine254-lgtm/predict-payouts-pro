@@ -622,7 +622,7 @@ function CreateMarket() {
         </div>
 
         <aside className="lg:sticky lg:top-20 lg:self-start">
-          <div className="rounded-2xl border border-border bg-card p-4 shadow-card">
+          <div className="rounded-2xl bg-card p-4 shadow-card">
             <h2 className="text-sm font-semibold">Preview</h2>
             <div className="mt-3 rounded-xl border border-border p-3">
               <div className="flex gap-3">
@@ -664,7 +664,7 @@ function CreateMarket() {
 
           <Link
             to="/invite"
-            className="mt-3 flex items-center gap-3 rounded-2xl border border-border bg-grape-soft p-4 text-grape transition-shadow hover:shadow-lift"
+            className="mt-3 flex items-center gap-3 rounded-2xl bg-grape-soft p-4 text-grape transition-shadow hover:shadow-lift"
           >
             <Sparkles className="size-5 shrink-0" />
             <span className="min-w-0 text-xs leading-relaxed">
@@ -680,7 +680,7 @@ function CreateMarket() {
 
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-2xl border border-border bg-card p-4 shadow-card">
+    <section className="rounded-2xl bg-card p-4 shadow-card">
       <h2 className="text-sm font-semibold">{title}</h2>
       <div className="mt-3 space-y-4">{children}</div>
     </section>

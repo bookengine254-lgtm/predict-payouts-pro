@@ -41,7 +41,7 @@ function Invite() {
         </p>
       </header>
 
-      <section className="mt-4 rounded-2xl border border-border bg-grape-soft p-5 text-grape">
+      <section className="mt-4 rounded-2xl bg-grape-soft p-5 text-grape">
         <Gift className="size-7 tremble" />
         <p className="mt-3 font-display text-3xl leading-tight">KSh 500</p>
         <p className="text-sm">for every 10 invites who deposit and stake</p>
@@ -69,7 +69,7 @@ function Invite() {
 
       <ul className="mt-4 grid gap-3 sm:grid-cols-2">
         {rewards.map((r) => (
-          <li key={r.title} className="rounded-2xl border border-border bg-card p-4 shadow-card">
+          <li key={r.title} className="rounded-2xl bg-card p-4 shadow-card">
             <div className="flex items-start justify-between gap-3">
               <h2 className="text-sm font-semibold">{r.title}</h2>
               <span className="shrink-0 rounded-full bg-yes-soft px-2 py-0.5 text-[0.7rem] font-semibold text-yes tabular">
@@ -85,7 +85,7 @@ function Invite() {
         <InviteBanner />
         <Link
           to="/create"
-          className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4 shadow-card transition-shadow hover:shadow-lift"
+          className="flex items-center gap-3 rounded-2xl bg-card p-4 shadow-card transition-shadow hover:shadow-lift"
         >
           <Share2 className="size-5 shrink-0 text-primary" />
           <span className="min-w-0 text-xs leading-relaxed">

@@ -145,7 +145,7 @@ function Discover() {
                   key={m.id}
                   to="/market/$marketId"
                   params={{ marketId: m.id }}
-                  className="rounded-2xl border border-border bg-card p-4 bevel press hover:bg-accent/30"
+                  className="rounded-2xl bg-card p-4 bevel press hover:bg-accent/30"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <h3 className="min-w-0 text-sm leading-snug font-semibold">{m.question}</h3>

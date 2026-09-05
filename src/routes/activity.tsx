@@ -108,12 +108,12 @@ function ActivityPage() {
                 <Link
                   to="/market/$marketId"
                   params={{ marketId: a.marketId }}
-                  className="flex items-start gap-3 rounded-2xl border border-border bg-card p-3.5 bevel press hover:bg-accent/40"
+                  className="flex items-start gap-3 rounded-2xl bg-card p-3.5 bevel press hover:bg-accent/40"
                 >
                   {body}
                 </Link>
               ) : (
-                <div className="flex items-start gap-3 rounded-2xl border border-border bg-card p-3.5 bevel">{body}</div>
+                <div className="flex items-start gap-3 rounded-2xl bg-card p-3.5 bevel">{body}</div>
               )}
             </li>
           );
@@ -121,14 +121,14 @@ function ActivityPage() {
       </ul>
 
       {items.length === 0 && (
-        <p className="mt-6 rounded-2xl border border-border bg-card p-6 text-center text-sm text-muted-foreground bevel">
+        <p className="mt-6 rounded-2xl bg-card p-6 text-center text-sm text-muted-foreground bevel">
           Nothing here yet. Follow a few markets and this fills up fast.
         </p>
       )}
 
       <Link
         to="/invite"
-        className="mt-4 flex items-center gap-3 rounded-2xl border border-border bg-teal-soft p-4 bevel press"
+        className="mt-4 flex items-center gap-3 rounded-2xl bg-teal-soft p-4 bevel press"
       >
         <Sparkles className="size-5 shrink-0 text-teal" />
         <span className="min-w-0 text-sm font-semibold">
