@@ -20,7 +20,7 @@ import { OddsChart, OutcomePoll } from "@/components/odds-chart";
 import { ForecastDock } from "@/components/forecast-dock";
 import { toneSoft, toneText } from "@/components/tone";
 import { cn } from "@/lib/utils";
-import { formatKsh, formatPct, timeLeft } from "@/lib/parimutuel";
+import { formatCount, formatKsh, formatPct, timeLeft } from "@/lib/parimutuel";
 import {
   categoryOf,
   marketById,
