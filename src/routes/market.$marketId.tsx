@@ -274,53 +274,6 @@ function MarketDetail() {
                 </div>
               )}
 
-              {tab === "Comments" && (
-                <div className="space-y-3">
-                  <ul className="space-y-2">
-                    {comments.map((c, idx) => (
-                      <li key={`${c.who}-${idx}`} className="flex gap-2.5 rounded-xl bg-secondary/50 p-3">
-                        <span className={cn("grid size-8 shrink-0 place-items-center rounded-full font-display text-[0.7rem]", toneSoft[c.tone])}>
-                          {c.initials}
-                        </span>
-                        <div className="min-w-0">
-                          <p className="text-xs text-muted-foreground">
-                            <span className="font-semibold text-foreground">@{c.who}</span> · {c.when}
-                          </p>
-                          <p className="mt-1 text-sm leading-relaxed">{c.text}</p>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                  <form
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      const text = draft.trim();
-                      if (!text) return;
-                      setComments((prev) => [
-                        { who: "you", initials: "YN", tone: "primary" as const, when: "just now", text },
-                        ...prev,
-                      ]);
-                      setDraft("");
-                      toast.success("Comment posted");
-                    }}
-                    className="flex items-end gap-2"
-                  >
-                    <textarea
-                      value={draft}
-                      onChange={(e) => setDraft(e.target.value)}
-                      rows={2}
-                      placeholder="Share your read on this market…"
-                      className="min-w-0 flex-1 resize-none rounded-xl border border-input bg-background px-3 py-2.5 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                    />
-                    <button
-                      type="submit"
-                      className="shrink-0 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground press"
-                    >
-                      Post
-                    </button>
-                  </form>
-                </div>
-              )}
 
               {tab === "My position" &&
                 (myPositions.length ? (
