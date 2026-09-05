@@ -112,26 +112,58 @@ function MarketDetail() {
 
       <div className="grid gap-5 pb-32 lg:grid-cols-[minmax(0,1fr)_360px] lg:pb-0">
         <div className="min-w-0 space-y-4">
-          <header className="rounded-2xl bg-card p-4 bevel sm:p-5">
-            <div className="grid grid-cols-[auto_minmax(0,1fr)] gap-3">
-              <MarketThumb market={market} size="lg" />
-              <div className="min-w-0">
+          <header className="rounded-2xl bg-card p-4 sm:p-5">
+            {isVersus ? (
+              <div className="space-y-3">
+                <div className="flex items-center justify-center gap-4 rounded-2xl bg-secondary/50 px-3 py-4">
+                  <VersusSide
+                    label={market.sports!.home}
+                    thumb={market.versus?.homeThumb}
+                    emoji={market.versus?.homeEmoji ?? market.thumbnailEmoji}
+                  />
+                  <span className="font-display text-sm tracking-widest text-muted-foreground">VS</span>
+                  <VersusSide
+                    label={market.sports!.away}
+                    thumb={market.versus?.awayThumb}
+                    emoji={market.versus?.awayEmoji ?? market.thumbnailEmoji}
+                    align="right"
+                  />
+                </div>
                 <h1 className="text-xl leading-snug font-semibold text-foreground sm:text-2xl">{market.question}</h1>
-                <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
-                  <span className={cn("rounded-full px-2 py-0.5 font-semibold", toneSoft[cat.tone])}>{cat.label}</span>
+                <div className="flex flex-wrap items-center gap-2 text-xs">
+                  <span className={cn("rounded-full px-2 py-0.5 font-semibold", toneSoft[cat.tone])}>
+                    {market.sports!.league}
+                  </span>
                   <span className="flex items-center gap-1 text-muted-foreground tabular">
                     <Clock className="size-3.5" /> {timeLeft(market.closesAt)}
                   </span>
                   <span className="flex items-center gap-1 text-muted-foreground tabular">
-                    <Users className="size-3.5" /> {market.forecasters.toLocaleString("en-KE")} forecasters
+                    <Users className="size-3.5" /> {formatCount(market.forecasters)} traders
                   </span>
                   <StatusPill status={market.status} />
                 </div>
               </div>
-            </div>
+            ) : (
+              <div className="grid grid-cols-[auto_minmax(0,1fr)] gap-3">
+                <MarketThumb market={market} size="lg" />
+                <div className="min-w-0">
+                  <h1 className="text-xl leading-snug font-semibold text-foreground sm:text-2xl">{market.question}</h1>
+                  <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+                    <span className={cn("rounded-full px-2 py-0.5 font-semibold", toneSoft[cat.tone])}>{cat.label}</span>
+                    <span className="flex items-center gap-1 text-muted-foreground tabular">
+                      <Clock className="size-3.5" /> {timeLeft(market.closesAt)}
+                    </span>
+                    <span className="flex items-center gap-1 text-muted-foreground tabular">
+                      <Users className="size-3.5" /> {formatCount(market.forecasters)} traders
+                    </span>
+                    <StatusPill status={market.status} />
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div className="mt-4 grid grid-cols-3 gap-3">
-              <Stat label="Pool" value={formatKsh(pool, { compact: true })} />
+              <Stat label="Vol" value={formatKsh(pool, { compact: true })} />
               <Stat
                 label={`${market.outcomes[0]!.label} implied`}
                 value={formatPct(probs[0] ?? 0, 1)}
