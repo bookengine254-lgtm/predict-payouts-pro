@@ -71,7 +71,7 @@ function Leaderboard() {
             to="/profile/$handle"
             params={{ handle: p.handle }}
             className={cn(
-              "rounded-2xl border border-border p-4 transition-shadow hover:shadow-lift",
+              "rounded-2xl p-4 transition-shadow hover:shadow-lift",
               i === 0 ? "bg-amber-soft" : "bg-card shadow-card",
             )}
           >
@@ -91,7 +91,7 @@ function Leaderboard() {
         ))}
       </div>
 
-      <ul className="mt-4 divide-y divide-border rounded-2xl border border-border bg-card shadow-card">
+      <ul className="mt-4 divide-y divide-border rounded-2xl bg-card shadow-card">
         {ranked.map((p, i) => (
           <li key={p.handle}>
             <Link

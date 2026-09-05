@@ -41,7 +41,7 @@ function Disputes() {
           {resolved.map((m) => {
             const outcome = m.outcomes.find((o) => o.id === m.resolved!.outcomeId)!;
             return (
-              <li key={m.id} className="rounded-2xl border border-border bg-card p-4 shadow-card">
+              <li key={m.id} className="rounded-2xl bg-card p-4 shadow-card">
                 <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
                   <Link
                     to="/market/$marketId"
@@ -79,7 +79,7 @@ function Disputes() {
           {disputes.map((d) => {
             const m = marketById(d.marketId);
             return (
-              <li key={d.id} className="rounded-2xl border border-border bg-card p-4 shadow-card">
+              <li key={d.id} className="rounded-2xl bg-card p-4 shadow-card">
                 <div className="flex items-start gap-3">
                   <Gavel className="mt-0.5 size-4 shrink-0 text-amber" />
                   <div className="min-w-0">

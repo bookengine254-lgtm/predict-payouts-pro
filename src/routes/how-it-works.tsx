@@ -38,7 +38,7 @@ function HowItWorks() {
 
       <ol className="mt-5 grid gap-3 sm:grid-cols-2">
         {steps.map((s, i) => (
-          <li key={s.title} className="rounded-2xl border border-border bg-card p-4 shadow-card">
+          <li key={s.title} className="rounded-2xl bg-card p-4 shadow-card">
             <div className="flex items-center gap-2">
               <s.icon className="size-4 text-primary" />
               <span className="font-display text-sm tabular text-muted-foreground">Step {i + 1}</span>
@@ -49,7 +49,7 @@ function HowItWorks() {
         ))}
       </ol>
 
-      <section className="mt-5 rounded-2xl border border-border bg-card p-4 shadow-card">
+      <section className="mt-5 rounded-2xl bg-card p-4 shadow-card">
         <h2 className="text-sm font-semibold">The payout formula</h2>
         <p className="mt-2 rounded-xl bg-secondary/60 p-3 font-display text-sm leading-relaxed tabular">
           payout = stake + (stake / winning pool) × losing pools × (1 − fees)

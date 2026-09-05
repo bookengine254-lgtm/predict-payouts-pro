@@ -87,3 +87,24 @@ export function timeLeft(iso: string, now = Date.now()) {
   if (days < 30) return `${days}d left`;
   return `${Math.floor(days / 30)}mo left`;
 }
+
+/**
+ * Short human count: 3000 -> 3k, 1_250_000 -> 1.3m. Used for trader counts
+ * so a card stat never grows wider than its column.
+ */
+export function formatCount(value: number) {
+  const abs = Math.abs(value);
+  const units: [number, string][] = [
+    [1e12, "t"],
+    [1e9, "b"],
+    [1e6, "m"],
+    [1e3, "k"],
+  ];
+  for (const [n, suffix] of units) {
+    if (abs >= n) {
+      const v = value / n;
+      return `${(Math.abs(v) >= 100 ? v.toFixed(0) : v.toFixed(1)).replace(/\.0$/, "")}${suffix}`;
+    }
+  }
+  return String(Math.round(value));
+}

@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
-import { formatKsh, formatPct, timeLeft } from "@/lib/parimutuel";
+import { formatCount, formatKsh, formatPct, timeLeft } from "@/lib/parimutuel";
 import { categoryOf, probabilities, totalPool, trendDelta, type Market } from "@/lib/mock-data";
 import { MarketThumb, VersusThumb } from "./market-thumb";
 import { Sparkline } from "./sparkline";
@@ -108,9 +108,9 @@ export function MarketCard({ market }: { market: Market }) {
       )}
 
       <div className="flex items-center justify-between text-[0.7rem] text-muted-foreground">
-        <span className="tabular">{formatKsh(pool, { compact: true })} pool</span>
+        <span className="tabular">{formatKsh(pool, { compact: true })} vol</span>
         <span className="flex items-center gap-1 tabular">
-          <Users className="size-3" /> {market.forecasters.toLocaleString("en-KE")}
+          <Users className="size-3" /> {formatCount(market.forecasters)} traders
         </span>
         <span className={cn("flex items-center gap-0.5 tabular font-medium", delta >= 0 ? "text-yes" : "text-no")}>
           {delta >= 0 ? <TrendingUp className="size-3" /> : <TrendingDown className="size-3" />}

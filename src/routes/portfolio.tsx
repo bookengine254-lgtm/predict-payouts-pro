@@ -101,7 +101,7 @@ function Portfolio() {
       <ul className="mt-4 space-y-2.5">
         {visible.map((r) => (
           <li key={`${r.marketId}-${r.outcomeId}`}>
-            <div className="rounded-2xl border border-border bg-card p-3 shadow-card">
+            <div className="rounded-2xl bg-card p-3 shadow-card">
               <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-3">
                 <MarketThumb market={r.market} />
                 <div className="min-w-0">

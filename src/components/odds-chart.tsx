@@ -21,13 +21,37 @@ const RANGES = [
 
 type RangeKey = (typeof RANGES)[number][0];
 
+/** A single pulsing marker parked at the end of the line — the live price. */
+function endDot(color: string, lastIndex: number) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (props: any) => {
+    const { cx, cy, index } = props as { cx?: number; cy?: number; index: number };
+    if (index !== lastIndex || cx == null || cy == null) return <g key={`empty-${index}`} />;
+    return (
+      <g key={`end-${index}`}>
+        <circle cx={cx} cy={cy} r={7} fill={color} opacity={0.22} />
+        <circle cx={cx} cy={cy} r={4} fill={color} stroke="var(--card)" strokeWidth={2} />
+      </g>
+    );
+  };
+}
+
 /**
  * Odds trend. Every outcome is a real series derived from the market history,
  * plotted as a percentage. Toggle a single outcome to isolate its curve.
  */
 export function OddsChart({ market }: { market: Market }) {
   const [range, setRange] = useState<RangeKey>("1W");
-  const [focus, setFocus] = useState<string | "all">("all");
+  /* Default view is the single leading outcome — one clean line, not a thicket. */
+  const leadingId = useMemo(() => {
+    const last = market.history.at(-1)?.values ?? [];
+    let best = 0;
+    last.forEach((v, i) => {
+      if (v > (last[best] ?? 0)) best = i;
+    });
+    return market.outcomes[best]?.id ?? market.outcomes[0]!.id;
+  }, [market]);
+  const [focus, setFocus] = useState<string | "all">(leadingId);
 
   const points = RANGES.find(([r]) => r === range)?.[1] ?? 40;
 
@@ -155,7 +179,7 @@ export function OddsChart({ market }: { market: Market }) {
                 strokeWidth={2.4}
                 fill={`url(#fill-${o.id})`}
                 fillOpacity={visible.length > 2 ? 0.35 : 1}
-                dot={false}
+                dot={endDot(toneStroke[o.tone], data.length - 1)}
                 activeDot={{ r: 4, strokeWidth: 0 }}
                 animationDuration={650}
                 animationEasing="ease-out"

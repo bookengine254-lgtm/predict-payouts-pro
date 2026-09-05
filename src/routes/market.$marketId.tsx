@@ -20,7 +20,7 @@ import { OddsChart, OutcomePoll } from "@/components/odds-chart";
 import { ForecastDock } from "@/components/forecast-dock";
 import { toneSoft, toneText } from "@/components/tone";
 import { cn } from "@/lib/utils";
-import { formatKsh, formatPct, timeLeft } from "@/lib/parimutuel";
+import { formatCount, formatKsh, formatPct, timeLeft } from "@/lib/parimutuel";
 import {
   categoryOf,
   marketById,
@@ -78,7 +78,7 @@ export const Route = createFileRoute("/market/$marketId")({
   ),
 });
 
-const TABS = ["Description", "Comments", "My position", "My forecasts"] as const;
+const TABS = ["Description", "My position", "My forecasts"] as const;
 
 const SEED_COMMENTS = [
   { who: "amina_k", initials: "AK", tone: "grape" as const, when: "2h ago", text: "Pool is leaning heavy on Yes but the criteria only counts the published statement — careful." },
@@ -99,6 +99,7 @@ function MarketDetail() {
   const creator = people.find((p) => p.handle === market.creator);
   const myPositions = positions.filter((p) => p.marketId === market.id);
   const related = markets.filter((m) => m.category === market.category && m.id !== market.id).slice(0, 3);
+  const isVersus = market.kind === "sports" && Boolean(market.sports);
 
   return (
     <AppShell>
@@ -112,26 +113,58 @@ function MarketDetail() {
 
       <div className="grid gap-5 pb-32 lg:grid-cols-[minmax(0,1fr)_360px] lg:pb-0">
         <div className="min-w-0 space-y-4">
-          <header className="rounded-2xl border border-border bg-card p-4 bevel sm:p-5">
-            <div className="grid grid-cols-[auto_minmax(0,1fr)] gap-3">
-              <MarketThumb market={market} size="lg" />
-              <div className="min-w-0">
+          <header className="rounded-2xl bg-card p-4 sm:p-5">
+            {isVersus ? (
+              <div className="space-y-3">
+                <div className="flex items-center justify-center gap-4 rounded-2xl bg-secondary/50 px-3 py-4">
+                  <VersusSide
+                    label={market.sports!.home}
+                    thumb={market.versus?.homeThumb}
+                    emoji={market.versus?.homeEmoji ?? market.thumbnailEmoji}
+                  />
+                  <span className="font-display text-sm tracking-widest text-muted-foreground">VS</span>
+                  <VersusSide
+                    label={market.sports!.away}
+                    thumb={market.versus?.awayThumb}
+                    emoji={market.versus?.awayEmoji ?? market.thumbnailEmoji}
+                    align="right"
+                  />
+                </div>
                 <h1 className="text-xl leading-snug font-semibold text-foreground sm:text-2xl">{market.question}</h1>
-                <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
-                  <span className={cn("rounded-full px-2 py-0.5 font-semibold", toneSoft[cat.tone])}>{cat.label}</span>
+                <div className="flex flex-wrap items-center gap-2 text-xs">
+                  <span className={cn("rounded-full px-2 py-0.5 font-semibold", toneSoft[cat.tone])}>
+                    {market.sports!.league}
+                  </span>
                   <span className="flex items-center gap-1 text-muted-foreground tabular">
                     <Clock className="size-3.5" /> {timeLeft(market.closesAt)}
                   </span>
                   <span className="flex items-center gap-1 text-muted-foreground tabular">
-                    <Users className="size-3.5" /> {market.forecasters.toLocaleString("en-KE")} forecasters
+                    <Users className="size-3.5" /> {formatCount(market.forecasters)} traders
                   </span>
                   <StatusPill status={market.status} />
                 </div>
               </div>
-            </div>
+            ) : (
+              <div className="grid grid-cols-[auto_minmax(0,1fr)] gap-3">
+                <MarketThumb market={market} size="lg" />
+                <div className="min-w-0">
+                  <h1 className="text-xl leading-snug font-semibold text-foreground sm:text-2xl">{market.question}</h1>
+                  <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+                    <span className={cn("rounded-full px-2 py-0.5 font-semibold", toneSoft[cat.tone])}>{cat.label}</span>
+                    <span className="flex items-center gap-1 text-muted-foreground tabular">
+                      <Clock className="size-3.5" /> {timeLeft(market.closesAt)}
+                    </span>
+                    <span className="flex items-center gap-1 text-muted-foreground tabular">
+                      <Users className="size-3.5" /> {formatCount(market.forecasters)} traders
+                    </span>
+                    <StatusPill status={market.status} />
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div className="mt-4 grid grid-cols-3 gap-3">
-              <Stat label="Pool" value={formatKsh(pool, { compact: true })} />
+              <Stat label="Vol" value={formatKsh(pool, { compact: true })} />
               <Stat
                 label={`${market.outcomes[0]!.label} implied`}
                 value={formatPct(probs[0] ?? 0, 1)}
@@ -164,7 +197,7 @@ function MarketDetail() {
                 description: "KSh 500 lands in your wallet once 10 invited forecasters deposit.",
               })
             }
-            className="flex w-full items-center gap-3 rounded-2xl border border-border bg-grape-soft p-4 text-left bevel press"
+            className="flex w-full items-center gap-3 rounded-2xl bg-grape-soft p-4 text-left bevel press"
           >
             <span className="grid size-10 shrink-0 place-items-center rounded-full bg-grape/15 text-grape">
               <Megaphone className="size-5" />
@@ -183,7 +216,7 @@ function MarketDetail() {
           <OddsChart market={market} />
 
           {/* Tabs */}
-          <section className="rounded-2xl border border-border bg-card p-4 bevel">
+          <section className="rounded-2xl bg-card p-4 bevel">
             <div className="-mx-1 flex gap-1 overflow-x-auto px-1 hide-scrollbar">
               {TABS.map((t) => (
                 <button
@@ -241,53 +274,6 @@ function MarketDetail() {
                 </div>
               )}
 
-              {tab === "Comments" && (
-                <div className="space-y-3">
-                  <ul className="space-y-2">
-                    {comments.map((c, idx) => (
-                      <li key={`${c.who}-${idx}`} className="flex gap-2.5 rounded-xl bg-secondary/50 p-3">
-                        <span className={cn("grid size-8 shrink-0 place-items-center rounded-full font-display text-[0.7rem]", toneSoft[c.tone])}>
-                          {c.initials}
-                        </span>
-                        <div className="min-w-0">
-                          <p className="text-xs text-muted-foreground">
-                            <span className="font-semibold text-foreground">@{c.who}</span> · {c.when}
-                          </p>
-                          <p className="mt-1 text-sm leading-relaxed">{c.text}</p>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                  <form
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      const text = draft.trim();
-                      if (!text) return;
-                      setComments((prev) => [
-                        { who: "you", initials: "YN", tone: "primary" as const, when: "just now", text },
-                        ...prev,
-                      ]);
-                      setDraft("");
-                      toast.success("Comment posted");
-                    }}
-                    className="flex items-end gap-2"
-                  >
-                    <textarea
-                      value={draft}
-                      onChange={(e) => setDraft(e.target.value)}
-                      rows={2}
-                      placeholder="Share your read on this market…"
-                      className="min-w-0 flex-1 resize-none rounded-xl border border-input bg-background px-3 py-2.5 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                    />
-                    <button
-                      type="submit"
-                      className="shrink-0 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground press"
-                    >
-                      Post
-                    </button>
-                  </form>
-                </div>
-              )}
 
               {tab === "My position" &&
                 (myPositions.length ? (
@@ -333,7 +319,7 @@ function MarketDetail() {
             </div>
           </section>
 
-          <section className="rounded-2xl border border-border bg-card p-4 bevel">
+          <section className="rounded-2xl bg-card p-4 bevel">
             <h2 className="text-sm font-semibold">Created by</h2>
             {creator && (
               <Link
@@ -366,12 +352,65 @@ function MarketDetail() {
               ))}
             </div>
           </section>
+
+          {/* Discussion lives after the related markets so the pool comes first. */}
+          <section className="rounded-2xl bg-card p-4">
+            <h2 className="text-sm font-semibold">Comments</h2>
+            <ul className="mt-3 space-y-2">
+              {comments.map((c, idx) => (
+                <li key={`${c.who}-${idx}`} className="flex gap-2.5 rounded-xl bg-secondary/50 p-3">
+                  <span
+                    className={cn(
+                      "grid size-8 shrink-0 place-items-center rounded-full font-display text-[0.7rem]",
+                      toneSoft[c.tone],
+                    )}
+                  >
+                    {c.initials}
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-xs text-muted-foreground">
+                      <span className="font-semibold text-foreground">@{c.who}</span> · {c.when}
+                    </p>
+                    <p className="mt-1 text-sm leading-relaxed">{c.text}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const text = draft.trim();
+                if (!text) return;
+                setComments((prev) => [
+                  { who: "you", initials: "YN", tone: "primary" as const, when: "just now", text },
+                  ...prev,
+                ]);
+                setDraft("");
+                toast.success("Comment posted");
+              }}
+              className="mt-3 flex items-end gap-2"
+            >
+              <textarea
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                rows={2}
+                placeholder="Share your read on this market…"
+                className="min-w-0 flex-1 resize-none rounded-xl border border-input bg-background px-3 py-2.5 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              />
+              <button
+                type="submit"
+                className="shrink-0 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground press"
+              >
+                Post
+              </button>
+            </form>
+          </section>
         </div>
 
         <aside className="lg:sticky lg:top-20 lg:self-start">
           <ForecastDock market={market} />
 
-          <div className="mt-3 hidden rounded-2xl border border-border bg-card p-4 bevel lg:block">
+          <div className="mt-3 hidden rounded-2xl bg-card p-4 bevel lg:block">
             <h3 className="text-sm font-semibold">Top forecasters here</h3>
             <ul className="mt-2 space-y-2">
               {people.slice(0, 4).map((p, i) => (
@@ -423,4 +462,30 @@ function StatusPill({ status }: { status: string }) {
   };
   const s = map[status] ?? map["open"]!;
   return <span className={cn("rounded-full px-2 py-0.5 font-semibold", s.cls)}>{s.label}</span>;
+}
+
+/** One side of a fixture header: crest (uploaded or emoji) plus the team name. */
+function VersusSide({
+  label,
+  thumb,
+  emoji,
+  align = "left",
+}: {
+  label: string;
+  thumb?: string | undefined;
+  emoji: string;
+  align?: "left" | "right";
+}) {
+  return (
+    <span className={cn("flex min-w-0 flex-1 items-center gap-2", align === "right" && "flex-row-reverse")}>
+      {thumb ? (
+        <img src={thumb} alt={label} className="size-12 shrink-0 rounded-xl object-cover" />
+      ) : (
+        <span aria-hidden="true" className="grid size-12 shrink-0 place-items-center rounded-xl bg-card text-2xl">
+          {emoji}
+        </span>
+      )}
+      <span className={cn("min-w-0 truncate text-sm font-semibold", align === "right" && "text-right")}>{label}</span>
+    </span>
+  );
 }

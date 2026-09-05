@@ -41,7 +41,7 @@ function Payouts() {
       </header>
 
       <div className="mt-4 grid gap-4 lg:grid-cols-2">
-        <div className="space-y-3 rounded-2xl border border-border bg-card p-4 shadow-card">
+        <div className="space-y-3 rounded-2xl bg-card p-4 shadow-card">
           {(
             [
               ["Your stake (KSh)", stake, setStake],
@@ -62,7 +62,7 @@ function Payouts() {
           ))}
         </div>
 
-        <dl className="space-y-2 rounded-2xl border border-border bg-card p-4 text-sm shadow-card">
+        <dl className="space-y-2 rounded-2xl bg-card p-4 text-sm shadow-card">
           <Row label="Implied probability" value={formatPct(quote.probabilityAfter, 1)} />
           <Row label="Payout if correct" value={formatKsh(quote.payout)} />
           <Row label="Net profit" value={formatKsh(quote.profit)} />
