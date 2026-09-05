@@ -78,7 +78,7 @@ export const Route = createFileRoute("/market/$marketId")({
   ),
 });
 
-const TABS = ["Description", "Comments", "My position", "My forecasts"] as const;
+const TABS = ["Description", "My position", "My forecasts"] as const;
 
 const SEED_COMMENTS = [
   { who: "amina_k", initials: "AK", tone: "grape" as const, when: "2h ago", text: "Pool is leaning heavy on Yes but the criteria only counts the published statement — careful." },
