@@ -99,6 +99,7 @@ function MarketDetail() {
   const creator = people.find((p) => p.handle === market.creator);
   const myPositions = positions.filter((p) => p.marketId === market.id);
   const related = markets.filter((m) => m.category === market.category && m.id !== market.id).slice(0, 3);
+  const isVersus = market.kind === "sports" && Boolean(market.sports);
 
   return (
     <AppShell>
