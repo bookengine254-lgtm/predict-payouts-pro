@@ -27,7 +27,16 @@ type RangeKey = (typeof RANGES)[number][0];
  */
 export function OddsChart({ market }: { market: Market }) {
   const [range, setRange] = useState<RangeKey>("1W");
-  const [focus, setFocus] = useState<string | "all">("all");
+  /* Default view is the single leading outcome — one clean line, not a thicket. */
+  const leadingId = useMemo(() => {
+    const last = market.history.at(-1)?.values ?? [];
+    let best = 0;
+    last.forEach((v, i) => {
+      if (v > (last[best] ?? 0)) best = i;
+    });
+    return market.outcomes[best]?.id ?? market.outcomes[0]!.id;
+  }, [market]);
+  const [focus, setFocus] = useState<string | "all">(leadingId);
 
   const points = RANGES.find(([r]) => r === range)?.[1] ?? 40;
 
