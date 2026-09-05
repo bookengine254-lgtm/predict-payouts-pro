@@ -164,7 +164,7 @@ export function OddsChart({ market }: { market: Market }) {
                 strokeWidth={2.4}
                 fill={`url(#fill-${o.id})`}
                 fillOpacity={visible.length > 2 ? 0.35 : 1}
-                dot={false}
+                dot={endDot(toneStroke[o.tone], data.length - 1)}
                 activeDot={{ r: 4, strokeWidth: 0 }}
                 animationDuration={650}
                 animationEasing="ease-out"
