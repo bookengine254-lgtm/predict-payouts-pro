@@ -21,6 +21,21 @@ const RANGES = [
 
 type RangeKey = (typeof RANGES)[number][0];
 
+/** A single pulsing marker parked at the end of the line — the live price. */
+function endDot(color: string, lastIndex: number) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (props: any) => {
+    const { cx, cy, index } = props as { cx?: number; cy?: number; index: number };
+    if (index !== lastIndex || cx == null || cy == null) return <g key={`empty-${index}`} />;
+    return (
+      <g key={`end-${index}`}>
+        <circle cx={cx} cy={cy} r={7} fill={color} opacity={0.22} />
+        <circle cx={cx} cy={cy} r={4} fill={color} stroke="var(--card)" strokeWidth={2} />
+      </g>
+    );
+  };
+}
+
 /**
  * Odds trend. Every outcome is a real series derived from the market history,
  * plotted as a percentage. Toggle a single outcome to isolate its curve.
