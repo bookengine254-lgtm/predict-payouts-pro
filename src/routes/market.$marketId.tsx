@@ -463,3 +463,29 @@ function StatusPill({ status }: { status: string }) {
   const s = map[status] ?? map["open"]!;
   return <span className={cn("rounded-full px-2 py-0.5 font-semibold", s.cls)}>{s.label}</span>;
 }
+
+/** One side of a fixture header: crest (uploaded or emoji) plus the team name. */
+function VersusSide({
+  label,
+  thumb,
+  emoji,
+  align = "left",
+}: {
+  label: string;
+  thumb?: string | undefined;
+  emoji: string;
+  align?: "left" | "right";
+}) {
+  return (
+    <span className={cn("flex min-w-0 flex-1 items-center gap-2", align === "right" && "flex-row-reverse")}>
+      {thumb ? (
+        <img src={thumb} alt={label} className="size-12 shrink-0 rounded-xl object-cover" />
+      ) : (
+        <span aria-hidden="true" className="grid size-12 shrink-0 place-items-center rounded-xl bg-card text-2xl">
+          {emoji}
+        </span>
+      )}
+      <span className={cn("min-w-0 truncate text-sm font-semibold", align === "right" && "text-right")}>{label}</span>
+    </span>
+  );
+}
