@@ -359,12 +359,28 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      debit_market_seed: {
+        Args: { _amount: number; _market_label: string }
+        Returns: undefined
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
         Returns: boolean
+      }
+      hold_withdrawal: {
+        Args: { _amount: number; _fee: number; _phone: string }
+        Returns: string
+      }
+      place_stake: {
+        Args: { _amount: number; _market_id: string; _outcome_id: string }
+        Returns: number
+      }
+      settle_provider_transaction: {
+        Args: { _payload: Json; _provider_ref: string; _success: boolean }
+        Returns: undefined
       }
     }
     Enums: {
