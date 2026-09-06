@@ -14,16 +14,378 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      market_disputes: {
+        Row: {
+          ai_verdict: string | null
+          created_at: string
+          id: string
+          market_id: string
+          reason: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          ai_verdict?: string | null
+          created_at?: string
+          id?: string
+          market_id: string
+          reason: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          ai_verdict?: string | null
+          created_at?: string
+          id?: string
+          market_id?: string
+          reason?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "market_disputes_market_id_fkey"
+            columns: ["market_id"]
+            isOneToOne: false
+            referencedRelation: "markets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      market_outcomes: {
+        Row: {
+          created_at: string
+          id: string
+          label: string
+          market_id: string
+          pool: number
+          sort: number
+          tone: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          label: string
+          market_id: string
+          pool?: number
+          sort?: number
+          tone?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          label?: string
+          market_id?: string
+          pool?: number
+          sort?: number
+          tone?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "market_outcomes_market_id_fkey"
+            columns: ["market_id"]
+            isOneToOne: false
+            referencedRelation: "markets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      markets: {
+        Row: {
+          ai_note: string
+          ai_verdict: string
+          category: string
+          closes_at: string
+          created_at: string
+          creator_fee_bps: number
+          creator_id: string
+          description: string
+          featured: boolean
+          id: string
+          kind: Database["public"]["Enums"]["market_kind"]
+          platform_fee_bps: number
+          question: string
+          resolution_criteria: string
+          resolution_rationale: string | null
+          resolved_at: string | null
+          resolved_outcome_id: string | null
+          seed_liquidity: number
+          short_title: string
+          sources: string[]
+          sports: Json | null
+          state: Database["public"]["Enums"]["market_state"]
+          thumbnail_emoji: string
+          thumbnail_url: string | null
+          traders: number
+          updated_at: string
+          versus: Json | null
+          volume: number
+        }
+        Insert: {
+          ai_note?: string
+          ai_verdict?: string
+          category?: string
+          closes_at: string
+          created_at?: string
+          creator_fee_bps?: number
+          creator_id: string
+          description?: string
+          featured?: boolean
+          id?: string
+          kind?: Database["public"]["Enums"]["market_kind"]
+          platform_fee_bps?: number
+          question: string
+          resolution_criteria?: string
+          resolution_rationale?: string | null
+          resolved_at?: string | null
+          resolved_outcome_id?: string | null
+          seed_liquidity?: number
+          short_title?: string
+          sources?: string[]
+          sports?: Json | null
+          state?: Database["public"]["Enums"]["market_state"]
+          thumbnail_emoji?: string
+          thumbnail_url?: string | null
+          traders?: number
+          updated_at?: string
+          versus?: Json | null
+          volume?: number
+        }
+        Update: {
+          ai_note?: string
+          ai_verdict?: string
+          category?: string
+          closes_at?: string
+          created_at?: string
+          creator_fee_bps?: number
+          creator_id?: string
+          description?: string
+          featured?: boolean
+          id?: string
+          kind?: Database["public"]["Enums"]["market_kind"]
+          platform_fee_bps?: number
+          question?: string
+          resolution_criteria?: string
+          resolution_rationale?: string | null
+          resolved_at?: string | null
+          resolved_outcome_id?: string | null
+          seed_liquidity?: number
+          short_title?: string
+          sources?: string[]
+          sports?: Json | null
+          state?: Database["public"]["Enums"]["market_state"]
+          thumbnail_emoji?: string
+          thumbnail_url?: string | null
+          traders?: number
+          updated_at?: string
+          versus?: Json | null
+          volume?: number
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          bio: string
+          created_at: string
+          id: string
+          joined_community: boolean
+          mpesa_ready: boolean
+          name: string
+          onboarded: boolean
+          phone: string
+          sms_updates: boolean
+          updated_at: string
+          username: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string
+          created_at?: string
+          id: string
+          joined_community?: boolean
+          mpesa_ready?: boolean
+          name?: string
+          onboarded?: boolean
+          phone?: string
+          sms_updates?: boolean
+          updated_at?: string
+          username: string
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string
+          created_at?: string
+          id?: string
+          joined_community?: boolean
+          mpesa_ready?: boolean
+          name?: string
+          onboarded?: boolean
+          phone?: string
+          sms_updates?: boolean
+          updated_at?: string
+          username?: string
+        }
+        Relationships: []
+      }
+      stakes: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          market_id: string
+          outcome_id: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          market_id: string
+          outcome_id: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          market_id?: string
+          outcome_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stakes_market_id_fkey"
+            columns: ["market_id"]
+            isOneToOne: false
+            referencedRelation: "markets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stakes_outcome_id_fkey"
+            columns: ["outcome_id"]
+            isOneToOne: false
+            referencedRelation: "market_outcomes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transactions: {
+        Row: {
+          amount: number
+          channel: string | null
+          created_at: string
+          id: string
+          kind: Database["public"]["Enums"]["txn_kind"]
+          label: string
+          provider_payload: Json | null
+          provider_ref: string | null
+          status: Database["public"]["Enums"]["txn_status"]
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          channel?: string | null
+          created_at?: string
+          id?: string
+          kind: Database["public"]["Enums"]["txn_kind"]
+          label?: string
+          provider_payload?: Json | null
+          provider_ref?: string | null
+          status?: Database["public"]["Enums"]["txn_status"]
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          channel?: string | null
+          created_at?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["txn_kind"]
+          label?: string
+          provider_payload?: Json | null
+          provider_ref?: string | null
+          status?: Database["public"]["Enums"]["txn_status"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      wallets: {
+        Row: {
+          balance: number
+          locked: number
+          referral_earnings: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          balance?: number
+          locked?: number
+          referral_earnings?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          balance?: number
+          locked?: number
+          referral_earnings?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "moderator" | "user"
+      market_kind: "binary" | "multi" | "sports"
+      market_state:
+        | "draft"
+        | "pending"
+        | "rejected"
+        | "open"
+        | "resolved"
+        | "disputed"
+      txn_kind:
+        | "topup"
+        | "withdraw"
+        | "stake"
+        | "payout"
+        | "creator_fee"
+        | "referral"
+        | "fee"
+      txn_status: "pending" | "complete" | "failed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +512,27 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "moderator", "user"],
+      market_kind: ["binary", "multi", "sports"],
+      market_state: [
+        "draft",
+        "pending",
+        "rejected",
+        "open",
+        "resolved",
+        "disputed",
+      ],
+      txn_kind: [
+        "topup",
+        "withdraw",
+        "stake",
+        "payout",
+        "creator_fee",
+        "referral",
+        "fee",
+      ],
+      txn_status: ["pending", "complete", "failed"],
+    },
   },
 } as const
