@@ -19,6 +19,7 @@ import { Route as LeaderboardRouteImport } from './routes/leaderboard'
 import { Route as PayoutsRouteImport } from './routes/payouts'
 import { Route as PortfolioRouteImport } from './routes/portfolio'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as WalletRouteImport } from './routes/wallet'
 import { Route as MarketMarketIdRouteImport } from './routes/market.$marketId'
 import { Route as ProfileHandleRouteImport } from './routes/profile.$handle'
@@ -73,6 +74,11 @@ const SettingsRoute = SettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const WalletRoute = WalletRouteImport.update({
   id: '/wallet',
   path: '/wallet',
@@ -100,6 +106,7 @@ export interface FileRoutesByFullPath {
   '/payouts': typeof PayoutsRoute
   '/portfolio': typeof PortfolioRoute
   '/settings': typeof SettingsRoute
+  '/terms': typeof TermsRoute
   '/wallet': typeof WalletRoute
   '/market/$marketId': typeof MarketMarketIdRoute
   '/profile/$handle': typeof ProfileHandleRoute
@@ -115,6 +122,7 @@ export interface FileRoutesByTo {
   '/payouts': typeof PayoutsRoute
   '/portfolio': typeof PortfolioRoute
   '/settings': typeof SettingsRoute
+  '/terms': typeof TermsRoute
   '/wallet': typeof WalletRoute
   '/market/$marketId': typeof MarketMarketIdRoute
   '/profile/$handle': typeof ProfileHandleRoute
@@ -131,6 +139,7 @@ export interface FileRoutesById {
   '/payouts': typeof PayoutsRoute
   '/portfolio': typeof PortfolioRoute
   '/settings': typeof SettingsRoute
+  '/terms': typeof TermsRoute
   '/wallet': typeof WalletRoute
   '/market/$marketId': typeof MarketMarketIdRoute
   '/profile/$handle': typeof ProfileHandleRoute
@@ -148,6 +157,7 @@ export interface FileRouteTypes {
     | '/payouts'
     | '/portfolio'
     | '/settings'
+    | '/terms'
     | '/wallet'
     | '/market/$marketId'
     | '/profile/$handle'
@@ -163,6 +173,7 @@ export interface FileRouteTypes {
     | '/payouts'
     | '/portfolio'
     | '/settings'
+    | '/terms'
     | '/wallet'
     | '/market/$marketId'
     | '/profile/$handle'
@@ -178,6 +189,7 @@ export interface FileRouteTypes {
     | '/payouts'
     | '/portfolio'
     | '/settings'
+    | '/terms'
     | '/wallet'
     | '/market/$marketId'
     | '/profile/$handle'
@@ -194,6 +206,7 @@ export interface RootRouteChildren {
   PayoutsRoute: typeof PayoutsRoute
   PortfolioRoute: typeof PortfolioRoute
   SettingsRoute: typeof SettingsRoute
+  TermsRoute: typeof TermsRoute
   WalletRoute: typeof WalletRoute
   MarketMarketIdRoute: typeof MarketMarketIdRoute
   ProfileHandleRoute: typeof ProfileHandleRoute
@@ -271,6 +284,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/wallet': {
       id: '/wallet'
       path: '/wallet'
@@ -306,6 +326,7 @@ const rootRouteChildren: RootRouteChildren = {
   PayoutsRoute: PayoutsRoute,
   PortfolioRoute: PortfolioRoute,
   SettingsRoute: SettingsRoute,
+  TermsRoute: TermsRoute,
   WalletRoute: WalletRoute,
   MarketMarketIdRoute: MarketMarketIdRoute,
   ProfileHandleRoute: ProfileHandleRoute,
