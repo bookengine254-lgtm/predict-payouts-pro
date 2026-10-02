@@ -1,35 +1,19 @@
 import { Link, useRouter, useRouterState } from "@tanstack/react-router";
 import { useState, type ReactNode } from "react";
-import {
-  Bell,
-  BarChart3,
-  ChevronLeft,
-  Compass,
-  Gavel,
-  Gift,
-  LogOut,
-  LayoutGrid,
-  LineChart,
-  Plus,
-  PlusCircle,
-  Search,
-  Trophy,
-  X,
-  User,
-  Wallet,
-} from "lucide-react";
+import { Bell, BarChart3, ChevronLeft, Compass, Gift, Menu, Moon, Plus, Search, Settings, Sun, Trophy, User, Wallet } from "lucide-react";
 import { Logo } from "./logo";
 import { AuthSheet } from "./auth-sheet";
 import { OnboardingSheet } from "./onboarding-sheet";
 import { QuickActions } from "./quick-actions";
+import { Button } from "./ui/button";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "./ui/sheet";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "./ui/accordion";
 import { cn } from "@/lib/utils";
-import { categories, currentUser, markets, totalPool } from "@/lib/mock-data";
+import { currentUser, markets, totalPool } from "@/lib/mock-data";
 import { formatKsh } from "@/lib/parimutuel";
 import { useAuth } from "@/hooks/use-auth";
-import { useNavCollapse } from "@/hooks/use-nav-collapse";
+import { usePrefs } from "@/hooks/use-prefs";
 
-/** Bottom nav: four destinations plus the rewards gift in the middle. Creating a
- * market lives on the home feed as a thumb-reach floating button instead. */
 const primaryNav = [
   { to: "/", label: "Markets", icon: Compass },
   { to: "/portfolio", label: "Portfolio", icon: BarChart3 },
@@ -37,105 +21,19 @@ const primaryNav = [
   { to: "/profile/you", label: "Profile", icon: User },
 ] as const;
 
-const railNav = [
-  { to: "/", label: "Discover", icon: LayoutGrid },
-  { to: "/portfolio", label: "Portfolio", icon: BarChart3 },
-  { to: "/wallet", label: "Wallet", icon: Wallet },
-  { to: "/leaderboard", label: "Leaderboard", icon: Trophy },
-  { to: "/invite", label: "Rewards", icon: Gift },
-  { to: "/payouts", label: "Payouts", icon: LineChart },
-  { to: "/disputes", label: "Resolutions", icon: Gavel },
-] as const;
-
-const footerLinks: { heading: string; links: { to: string; label: string }[] }[] = [
-  {
-    heading: "Forecast",
-    links: [
-      { to: "/", label: "Discover markets" },
-      { to: "/leaderboard", label: "Leaderboard" },
-      { to: "/create", label: "Create a market" },
-      { to: "/portfolio", label: "Your portfolio" },
-    ],
-  },
-  {
-    heading: "How it works",
-    links: [
-      { to: "/how-it-works", label: "Getting started" },
-      { to: "/payouts", label: "Payout & pool rules" },
-      { to: "/disputes", label: "Resolutions & disputes" },
-      { to: "/activity", label: "Activity feed" },
-    ],
-  },
-  {
-    heading: "Earn",
-    links: [
-      { to: "/invite", label: "Invite & earn" },
-      { to: "/create", label: "Creator commission" },
-      { to: "/wallet", label: "Wallet & M-Pesa" },
-      { to: "/settings", label: "Settings" },
-    ],
-
-  },
-];
-
-/** Routes that behave like a browsing feed keep the pills + search rows. */
-const FEED_ROUTES = ["/", "/leaderboard", "/activity"];
-
-/** Mobile titles for the back-nav bar on non-feed pages. */
-const PAGE_TITLES: Record<string, string> = {
-  "/portfolio": "Portfolio",
-  "/wallet": "Wallet",
-  "/create": "New market",
-  "/invite": "Rewards",
-  "/payouts": "Payouts",
-  "/disputes": "Resolutions",
-  "/settings": "Settings",
-  "/how-it-works": "How it works",
-  "/market": "Market",
-  "/profile": "Profile",
-};
-
-function titleFor(pathname: string) {
-  if (PAGE_TITLES[pathname]) return PAGE_TITLES[pathname]!;
-  const root = `/${pathname.split("/")[1] ?? ""}`;
-  return PAGE_TITLES[root] ?? "Polka";
-}
+const PAGE_TITLES: Record<string, string> = { "/portfolio": "Portfolio", "/wallet": "Wallet", "/create": "New market", "/invite": "Rewards", "/payouts": "Payouts", "/disputes": "Resolutions", "/settings": "Settings", "/how-it-works": "How it works", "/market": "Market", "/profile": "Profile", "/terms": "Terms" };
+function titleFor(pathname: string) { return PAGE_TITLES[pathname] ?? PAGE_TITLES[`/${pathname.split("/")[1] ?? ""}`] ?? "Polka"; }
 
 export function AppShell({ children, wide = false }: { children: ReactNode; wide?: boolean }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const collapsed = useNavCollapse(pathname);
-  const isFeed = FEED_ROUTES.includes(pathname);
-  const [searchOpen, setSearchOpen] = useState(false);
-
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      {/* Sticky header. The brand row is always there; only the category rail
-          folds away as you scroll into the feed. Search opens on demand. */}
       <div className="sticky top-0 z-40 border-b border-border/60 bg-background/90 backdrop-blur-lg">
-        <TopBar
-          back={!isFeed}
-          title={titleFor(pathname)}
-          searchOpen={searchOpen}
-          onToggleSearch={() => setSearchOpen((v) => !v)}
-        />
-        {isFeed && (
-          <div
-            className={cn(
-              "overflow-hidden transition-[max-height,opacity] duration-300 ease-out",
-              collapsed && !searchOpen ? "max-h-0 opacity-0 lg:max-h-16 lg:opacity-100" : "max-h-16 opacity-100",
-            )}
-          >
-            <RecommendationPills />
-          </div>
-        )}
-        {searchOpen && <MarketSearch onClose={() => setSearchOpen(false)} />}
+        <TopBar back={pathname !== "/" && pathname !== "/leaderboard" && pathname !== "/activity"} title={titleFor(pathname)} />
       </div>
-      <div className={cn("mx-auto flex w-full flex-1 gap-8 px-4 lg:px-8", wide ? "max-w-[1500px]" : "max-w-[1280px]")}>
-        <MenuRail />
-        <main className="min-w-0 flex-1 pt-4 pb-28 lg:pt-6 lg:pb-12">{children}</main>
-      </div>
+      <main className={cn("mx-auto w-full flex-1 px-4 pt-4 pb-28 lg:px-6 lg:pt-6 lg:pb-12", wide ? "max-w-[1500px]" : "max-w-6xl")}>{children}</main>
       <SiteFooter />
-      <BottomNav collapsed={collapsed} />
+      <BottomNav />
       <QuickActions />
       <AuthSheet />
       <OnboardingSheet />
@@ -143,336 +41,65 @@ export function AppShell({ children, wide = false }: { children: ReactNode; wide
   );
 }
 
-
-/** Quick-jump category pills, visually fused to the brand row above them. */
-function RecommendationPills() {
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const search = useRouterState({ select: (s) => s.location.search as { category?: string } });
-  const active = pathname === "/" ? (search.category ?? "trending") : null;
-
-  const pill = (isActive: boolean) =>
-    cn(
-      "shrink-0 rounded-full px-3.5 py-1.5 text-[0.8rem] font-semibold transition-colors",
-      isActive ? "bg-primary text-primary-foreground" : "bg-secondary/70 text-muted-foreground hover:text-foreground",
-    );
-
-  return (
-    <div className="mx-auto flex max-w-[1500px] gap-1.5 overflow-x-auto px-4 pb-1.5 hide-scrollbar lg:px-8">
-      <Link to="/" activeOptions={{ exact: true }} search={{}} className={pill(active === "trending")}>
-        Trending
-      </Link>
-      {categories.map((c) => (
-        <Link key={c.id} to="/" search={{ category: c.id }} className={pill(active === c.id)}>
-          {c.label}
-        </Link>
-      ))}
-      <Link to="/leaderboard" className={pill(false)}>
-        Leaderboard
-      </Link>
-      <Link to="/invite" className="shrink-0 rounded-full bg-grape-soft px-3.5 py-1.5 text-[0.8rem] font-semibold text-grape">
-        Invite & earn
-      </Link>
-    </div>
-  );
-}
-
-/** Market search — only mounted once the search icon in the top bar is tapped. */
-function MarketSearch({ onClose }: { onClose: () => void }) {
+function MarketSearch() {
   const [q, setQ] = useState("");
-  const term = q.trim().toLowerCase();
-  const results = term
-    ? markets
-        .filter((m) => m.status === "open")
-        .filter((m) => `${m.question} ${m.shortTitle} ${m.category}`.toLowerCase().includes(term))
-        .slice(0, 6)
-    : [];
-
+  const results = q.trim() ? markets.filter((m) => `${m.question} ${m.category}`.toLowerCase().includes(q.toLowerCase())).slice(0, 6) : [];
   return (
-    <div className="relative mx-auto max-w-[1500px] px-4 pb-2.5 lg:px-8">
-      <label className="flex items-center gap-2 rounded-full bg-secondary/70 px-3.5 py-2 float-pop">
+    <div className="relative min-w-0 flex-1">
+      <label className="flex h-9 items-center gap-2 rounded-md border border-border bg-secondary/60 px-3">
         <Search className="size-4 shrink-0 text-muted-foreground" />
-        <input
-          autoFocus
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder="Search markets — politics, Harambee Stars, BTC…"
-          className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
-        />
-        <button
-          type="button"
-          onClick={() => (q ? setQ("") : onClose())}
-          aria-label={q ? "Clear search" : "Close search"}
-          className="text-muted-foreground"
-        >
-          <X className="size-4" />
-        </button>
+        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search markets" className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground" />
       </label>
-      {results.length > 0 && (
-        <ul className="absolute inset-x-4 top-full z-50 max-h-[60vh] overflow-y-auto rounded-2xl border border-border bg-card p-1.5 shadow-card lg:inset-x-8">
-          {results.map((m) => (
-            <li key={m.id}>
-              <Link
-                to="/market/$marketId"
-                params={{ marketId: m.id }}
-                onClick={() => setQ("")}
-                className="flex items-center gap-2 rounded-xl px-2 py-2 hover:bg-accent/50"
-              >
-                <span className="min-w-0 flex-1 truncate text-sm font-medium">{m.shortTitle}</span>
-                <span className="shrink-0 text-xs text-muted-foreground tabular">
-                  {formatKsh(totalPool(m), { compact: true })}
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
+      {results.length > 0 && <ul className="absolute inset-x-0 top-11 z-50 rounded-lg border border-border bg-card p-1 shadow-card">{results.map((m) => <li key={m.id}><Link to="/market/$marketId" params={{ marketId: m.id }} onClick={() => setQ("")} className="flex items-center gap-2 rounded-md px-2 py-2 hover:bg-accent"><span className="min-w-0 flex-1 truncate text-sm">{m.question}</span><span className="text-xs text-muted-foreground">{formatKsh(totalPool(m), { compact: true })}</span></Link></li>)}</ul>}
     </div>
   );
 }
 
-
-function TopBar({
-  back = false,
-  title = "Polka",
-  searchOpen = false,
-  onToggleSearch,
-}: {
-  back?: boolean;
-  title?: string;
-  searchOpen?: boolean;
-  onToggleSearch?: () => void;
-}) {
-  const { account, openAuth, signOut } = useAuth();
+function TopBar({ back, title }: { back: boolean; title: string }) {
+  const { account, openAuth } = useAuth();
   const router = useRouter();
-
   return (
-    <header>
-      <div className="mx-auto grid max-w-[1500px] grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-4 py-2.5 lg:gap-6 lg:px-8">
-        <div className="flex items-center gap-1.5">
-          {back && (
-            <button
-              type="button"
-              onClick={() => router.history.back()}
-              aria-label="Go back"
-              className="grid size-9 place-items-center rounded-full bg-secondary/70 text-foreground press lg:hidden"
-            >
-              <ChevronLeft className="size-5" />
-            </button>
-          )}
-          <Logo />
-        </div>
-
-        <nav className="hidden items-center gap-1 lg:flex">
-          {railNav.slice(0, 5).map((item) => (
-            <Link
-              key={item.to}
-              to={item.to}
-              activeOptions={{ exact: item.to === "/" }}
-              className="rounded-lg px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground data-[status=active]:bg-primary-soft data-[status=active]:text-primary"
-            >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
-        <span className="min-w-0 truncate text-xs font-semibold text-muted-foreground lg:hidden">
-          {back ? title : ""}
-        </span>
-
-        <div className="flex items-center gap-1.5">
-          <button
-            type="button"
-            onClick={onToggleSearch}
-            aria-label={searchOpen ? "Close search" : "Search markets"}
-            aria-expanded={searchOpen}
-            className={cn(
-              "grid size-9 place-items-center rounded-full press",
-              searchOpen ? "bg-primary text-primary-foreground" : "bg-secondary/70 text-muted-foreground hover:text-foreground",
-            )}
-          >
-            <Search className="size-4.5" />
-          </button>
-          {account ? (
-            <>
-              <Link
-                to="/wallet"
-                search={{}}
-                className="flex items-center gap-1.5 rounded-lg bg-primary px-2.5 py-1.5 text-xs font-semibold text-primary-foreground bevel press transition-opacity hover:opacity-90"
-              >
-                <Wallet className="size-3.5" />
-                <span className="tabular">{formatKsh(currentUser.balance, { compact: true })}</span>
-              </Link>
-
-              {/* Mobile: one-tap green top-up sitting right beside the wallet */}
-              <Link
-                to="/wallet"
-                search={{ topup: true }}
-                className="flex items-center gap-1 rounded-lg bg-yes px-2 py-1.5 text-xs font-bold text-primary-foreground transition-opacity hover:opacity-90 lg:hidden"
-                aria-label="Top up with M-Pesa"
-              >
-                <Plus className="size-3.5" /> Top up
-              </Link>
-              <Link
-                to="/profile/$handle"
-                params={{ handle: account.username || "you" }}
-                className="hidden size-9 place-items-center rounded-full bg-grape-soft font-display text-xs text-grape lg:grid"
-                aria-label="Your profile"
-              >
-                {account.initials}
-              </Link>
-              <button
-                type="button"
-                onClick={signOut}
-                className="hidden size-9 place-items-center rounded-lg text-muted-foreground transition-colors hover:bg-accent hover:text-foreground lg:grid"
-                aria-label="Sign out"
-              >
-                <LogOut className="size-4.5" />
-              </button>
-            </>
-          ) : (
-            <>
-              <button
-                type="button"
-                onClick={() => openAuth("signin")}
-                className="rounded-lg border border-border px-2.5 py-1.5 text-xs font-semibold text-foreground press hover:bg-accent"
-              >
-                Log in
-              </button>
-              <button
-                type="button"
-                onClick={() => openAuth("signup")}
-                className="rounded-lg bg-primary px-2.5 py-1.5 text-xs font-semibold text-primary-foreground bevel press"
-              >
-                Sign up
-              </button>
-            </>
-          )}
-        </div>
-      </div>
+    <header className="mx-auto flex h-14 max-w-[1500px] items-center gap-2 px-4 lg:gap-4 lg:px-6">
+      {back && <Button variant="ghost" size="icon" onClick={() => router.history.back()} aria-label="Go back" className="lg:hidden"><ChevronLeft /></Button>}
+      <Logo compact />
+      <span className="min-w-0 flex-1 truncate text-xs font-semibold text-muted-foreground lg:hidden">{back ? title : ""}</span>
+      <div className="hidden max-w-xl flex-1 lg:block"><MarketSearch /></div>
+      {account ? <>
+        <Link to="/portfolio" className="hidden text-xs text-muted-foreground lg:block">Portfolio <strong className="ml-1 text-foreground tabular">{formatKsh(currentUser.locked, { compact: true })}</strong></Link>
+        <Link to="/wallet" search={{}} className="hidden text-xs text-muted-foreground lg:block">Cash <strong className="ml-1 text-foreground tabular">{formatKsh(currentUser.balance, { compact: true })}</strong></Link>
+        <Button asChild size="sm" className="hidden lg:inline-flex"><Link to="/wallet" search={{ topup: true }}><Plus /> Deposit</Link></Button>
+        <Button asChild variant="ghost" size="icon" className="hidden lg:inline-flex"><Link to="/invite" aria-label="Rewards"><Gift /></Link></Button>
+        <Button asChild variant="ghost" size="icon" className="hidden lg:inline-flex"><Link to="/activity" aria-label="Notifications"><Bell /></Link></Button>
+        <NavDrawer avatar={account.avatar} initials={account.initials} />
+      </> : <>
+        <Link to="/how-it-works" className="hidden text-sm font-medium lg:block">How it works</Link>
+        <Button variant="ghost" size="sm" onClick={() => openAuth("signin")}>Log in</Button>
+        <Button size="sm" onClick={() => openAuth("signup")}>Sign up</Button>
+        <NavDrawer />
+      </>}
     </header>
   );
 }
 
+const drawerGroups = [
+  { title: "Forecast", links: [["/", "Markets"], ["/leaderboard", "Leaderboard"], ["/create", "Create a market"]] },
+  { title: "How it works", links: [["/how-it-works", "Getting started"], ["/payouts", "Payouts"], ["/disputes", "Resolutions"]] },
+  { title: "Earn", links: [["/invite", "Rewards"], ["/create", "Creator commission"], ["/wallet", "Wallet & M-Pesa"]] },
+] as const;
 
-function MenuRail() {
-  return (
-    <aside className="hidden w-56 shrink-0 pt-6 lg:block">
-      <nav className="sticky top-20 flex flex-col gap-0.5">
-        {railNav.map((item) => (
-          <Link
-            key={item.to}
-            to={item.to}
-            activeOptions={{ exact: item.to === "/" }}
-            className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground data-[status=active]:bg-primary-soft data-[status=active]:font-medium data-[status=active]:text-primary"
-          >
-            <item.icon className="size-4" />
-            {item.label}
-          </Link>
-        ))}
-        <Link
-          to="/create"
-          className="mt-3 flex items-center justify-center gap-2 rounded-xl bg-primary px-3 py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
-        >
-          <PlusCircle className="size-4" /> New market
-        </Link>
-        <p className="mt-3 rounded-xl bg-amber-soft p-3 text-[0.7rem] leading-relaxed text-amber">
-          Creators earn commission on every pool they seed. Seed well, share widely.
-        </p>
-      </nav>
-    </aside>
-  );
+function NavDrawer({ avatar, initials }: { avatar?: string | null; initials?: string }) {
+  const { account, openAuth, signOut } = useAuth();
+  const { prefs, set } = usePrefs();
+  return <Sheet><SheetTrigger asChild><Button variant="ghost" size="icon" aria-label="Open navigation">{avatar ? <img src={avatar} alt="" className="size-8 rounded-full object-cover" /> : initials ? <span className="grid size-8 place-items-center rounded-full bg-grape-soft text-xs font-semibold text-grape">{initials}</span> : <Menu />}</Button></SheetTrigger>
+    <SheetContent className="flex w-[88vw] flex-col overflow-y-auto sm:max-w-sm"><SheetHeader><SheetTitle>{account ? account.name : "Explore Polka"}</SheetTitle><SheetDescription>{account ? `@${account.username}` : "Forecast events across East Africa."}</SheetDescription></SheetHeader>
+      {account && <div className="grid grid-cols-3 gap-2"><Button asChild variant="outline" size="sm"><Link to="/profile/$handle" params={{ handle: account.username }}><User /> Profile</Link></Button><Button asChild variant="outline" size="sm"><Link to="/settings"><Settings /> Settings</Link></Button><Button asChild variant="outline" size="sm"><Link to="/leaderboard"><Trophy /> Ranks</Link></Button></div>}
+      <Button variant="outline" className="justify-between" onClick={() => set("theme", prefs.theme === "dark" ? "light" : "dark")}>{prefs.theme === "dark" ? <><Moon /> Dark mode</> : <><Sun /> Light mode</>}<span>Toggle</span></Button>
+      <Accordion type="multiple" defaultValue={["Forecast"]}>{drawerGroups.map((group) => <AccordionItem key={group.title} value={group.title}><AccordionTrigger>{group.title}</AccordionTrigger><AccordionContent className="flex flex-col gap-1">{group.links.map(([to, label]) => <Link key={to + label} to={to} className="rounded-md px-2 py-2 text-sm text-muted-foreground hover:bg-accent hover:text-foreground">{label}</Link>)}</AccordionContent></AccordionItem>)}</Accordion>
+      <div className="mt-auto space-y-1 border-t border-border pt-4"><Link to="/terms" className="block rounded-md px-2 py-2 text-sm">Terms of Service</Link><a href="https://wa.me/254116067033" target="_blank" rel="noreferrer" className="block rounded-md px-2 py-2 text-sm">WhatsApp support · 0116067033</a><button type="button" className="block w-full rounded-md px-2 py-2 text-left text-sm">Language · English</button>{account ? <Button variant="ghost" className="w-full justify-start text-no" onClick={signOut}>Log out</Button> : <div className="grid grid-cols-2 gap-2 pt-2"><Button variant="outline" onClick={() => openAuth("signin")}>Log in</Button><Button onClick={() => openAuth("signup")}>Sign up</Button></div>}</div>
+    </SheetContent></Sheet>;
 }
 
-function BottomNav({ collapsed = false }: { collapsed?: boolean }) {
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const isActive = (to: string) => (to === "/" ? pathname === "/" : pathname.startsWith(`/${to.split("/")[1]}`));
+function BottomNav() { const pathname = useRouterState({ select: (s) => s.location.pathname }); return <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-lg lg:hidden"><ul className="grid grid-cols-5">{primaryNav.slice(0,2).map((item) => <NavItem key={item.to} {...item} active={pathname === item.to} />)}<li><Link to="/invite" className="flex flex-col items-center gap-0.5 py-2 text-[0.62rem] text-muted-foreground"><span className="grid size-8 place-items-center rounded-full bg-grape-soft text-grape"><Gift className="size-4" /></span>Rewards</Link></li>{primaryNav.slice(2).map((item) => <NavItem key={item.to} {...item} active={pathname.startsWith(item.to)} />)}</ul></nav>; }
+function NavItem({ to, label, icon: Icon, active }: { to: string; label: string; icon: React.ComponentType<{ className?: string }>; active: boolean }) { return <li><Link to={to} className={cn("flex flex-col items-center gap-1 py-3 text-[0.62rem]", active ? "text-primary" : "text-muted-foreground")}><Icon className="size-5" />{label}</Link></li>; }
 
-  return (
-    <nav
-      className={cn(
-        "fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-lg transition-transform duration-300 ease-out lg:hidden",
-        collapsed ? "translate-y-[110%]" : "translate-y-0",
-      )}
-    >
-      <ul className="grid grid-cols-5">
-        {primaryNav.slice(0, 2).map((item) => (
-          <NavItem key={item.label} {...item} active={isActive(item.to)} />
-        ))}
-        <li className="flex justify-center">
-          <Link
-            to="/invite"
-            aria-label="Rewards and referral bonuses"
-            className="flex w-full flex-col items-center gap-0.5 py-2 text-[0.62rem] font-medium text-muted-foreground"
-          >
-            <span className="grid size-8 place-items-center rounded-full bg-grape-soft text-grape">
-              <Gift className="size-4.5 tremble" />
-            </span>
-            Rewards
-          </Link>
-        </li>
-        {primaryNav.slice(2).map((item) => (
-          <NavItem key={item.label} {...item} active={isActive(item.to)} />
-        ))}
-      </ul>
-    </nav>
-  );
-}
-
-function NavItem({
-  to,
-  label,
-  icon: Icon,
-  active,
-}: {
-  to: string;
-  label: string;
-  icon: React.ComponentType<{ className?: string }>;
-  active: boolean;
-}) {
-  return (
-    <li className="flex justify-center">
-      <Link
-        to={to}
-        className={cn(
-          "flex w-full flex-col items-center gap-0.5 py-2 text-[0.62rem] font-medium transition-colors",
-          active ? "text-primary" : "text-muted-foreground",
-        )}
-      >
-        <Icon className="size-5" />
-        {label}
-      </Link>
-    </li>
-  );
-}
-
-function SiteFooter() {
-  return (
-    <footer className="mt-8 border-t border-border bg-secondary/40 pb-24 lg:pb-0">
-      <div className="mx-auto grid max-w-[1280px] gap-8 px-4 py-10 sm:grid-cols-2 lg:grid-cols-4 lg:px-8">
-        <div className="lg:col-span-1">
-          <Logo />
-          <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
-            Polka is a skill-based forecasting exchange. Forecasters stake into shared pools, and the pool pays the
-            people who read the world correctly. No bookmaker, no house odds, no betting.
-          </p>
-        </div>
-        {footerLinks.map((col) => (
-          <div key={col.heading}>
-            <h3 className="font-display text-xs tracking-widest uppercase text-muted-foreground">{col.heading}</h3>
-            <ul className="mt-3 space-y-2">
-              {col.links.map((l) => (
-                <li key={l.label}>
-                  <Link to={l.to} className="text-sm text-foreground/80 transition-colors hover:text-primary">
-                    {l.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
-      </div>
-      <div className="border-t border-border px-4 py-4 text-center text-[0.7rem] text-muted-foreground lg:px-8">
-        Polka · Skill-based forecasting, parimutuel payouts, M-Pesa settlement. 18+. Forecast within your means.
-      </div>
-    </footer>
-  );
-}
+function SiteFooter() { return <footer className="mt-10 border-t border-border bg-secondary/40 pb-24 lg:pb-0"><div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:grid-cols-2 lg:grid-cols-4"><div><Logo /><p className="mt-3 text-xs leading-relaxed text-muted-foreground">The largest prediction market in East Africa. Forecast events, join shared pools and settle through M-Pesa.</p></div>{drawerGroups.map((group) => <div key={group.title}><h3 className="text-xs font-semibold uppercase text-muted-foreground">{group.title}</h3><ul className="mt-3 space-y-2">{group.links.map(([to,label]) => <li key={to+label}><Link to={to} className="text-sm hover:text-primary">{label}</Link></li>)}</ul></div>)}</div><div className="border-t border-border px-4 py-4 text-center text-xs text-muted-foreground"><Link to="/terms" className="hover:text-primary">Terms</Link> · <a href="https://wa.me/254116067033" target="_blank" rel="noreferrer" className="hover:text-primary">WhatsApp support: 0116067033</a> · 18+</div></footer>; }
