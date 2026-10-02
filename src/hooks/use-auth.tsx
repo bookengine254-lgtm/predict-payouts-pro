@@ -80,7 +80,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const raw = window.localStorage.getItem(KEY);
       if (raw) {
         const parsed = JSON.parse(raw) as Account;
-        setAccount({ bio: "", avatar: null, ...parsed });
+        setAccount({ ...parsed, bio: parsed.bio ?? "", avatar: parsed.avatar ?? null });
         if (!parsed.onboarded) setOnboarding(true);
       }
     } catch {
