@@ -80,7 +80,10 @@ export const Route = createFileRoute("/market/$marketId")({
 
 const TABS = ["Description", "My position", "My forecasts"] as const;
 
-const SEED_COMMENTS = [
+type CommentTone = "primary" | "grape" | "teal" | "amber";
+type MarketComment = { who: string; initials: string; tone: CommentTone; when: string; text: string };
+
+const SEED_COMMENTS: MarketComment[] = [
   { who: "amina_k", initials: "AK", tone: "grape" as const, when: "2h ago", text: "Pool is leaning heavy on Yes but the criteria only counts the published statement — careful." },
   { who: "brian_o", initials: "BO", tone: "teal" as const, when: "5h ago", text: "Added a small position on the underdog. Implied looks 6 points too low to me." },
   { who: "wanjiru", initials: "WM", tone: "amber" as const, when: "yesterday", text: "Sources listed are solid. This is the cleanest resolution wording I have seen on Polka." },

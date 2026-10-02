@@ -81,16 +81,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Polka — Skill-Based Forecasting Markets" },
+      { title: "Polka — The Largest Prediction Market in East Africa" },
       {
         name: "description",
         content:
-          "Polka is a skill-based forecasting exchange. Stake into shared parimutuel pools and settle with M-Pesa.",
+          "Polka is East Africa's largest prediction market. Forecast events, join shared pools and settle through M-Pesa.",
       },
-      { property: "og:title", content: "Polka — Skill-Based Forecasting Markets" },
+      { property: "og:title", content: "Polka — The Largest Prediction Market in East Africa" },
       {
         property: "og:description",
-        content: "Shared pools, no bookmaker. Forecast the world, split the pool, cash out to M-Pesa.",
+        content: "Forecast events across East Africa, join shared pools and settle through M-Pesa.",
       },
       { property: "og:site_name", content: "Polka" },
       { property: "og:type", content: "website" },
@@ -107,7 +107,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&display=swap",
       },
     ],
   }),
