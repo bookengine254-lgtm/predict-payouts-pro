@@ -80,12 +80,13 @@ export function timeLeft(iso: string, now = Date.now()) {
   const ms = new Date(iso).getTime() - now;
   if (ms <= 0) return "Closed";
   const mins = Math.floor(ms / 60_000);
-  if (mins < 60) return `${mins}m left`;
+  if (mins < 60) return `${Math.max(1, mins)}m left`;
   const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours}h left`;
+  if (hours < 24) return `${hours}h ${mins % 60}m left`;
   const days = Math.floor(hours / 24);
-  if (days < 30) return `${days}d left`;
-  return `${Math.floor(days / 30)}mo left`;
+  if (days < 30) return `${days}d ${hours % 24}h left`;
+  const months = Math.floor(days / 30);
+  return days % 30 ? `${months}mo ${days % 30}d left` : `${months}mo left`;
 }
 
 /**

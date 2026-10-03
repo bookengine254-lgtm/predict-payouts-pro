@@ -18,6 +18,7 @@ import {
 
 import { toast } from "sonner";
 import { AppShell } from "@/components/app-shell";
+import { ShareMarketDialog } from "@/components/share-market-dialog";
 import { cn } from "@/lib/utils";
 import { formatKsh } from "@/lib/parimutuel";
 import { categories, type CategoryId } from "@/lib/mock-data";
@@ -61,6 +62,19 @@ function CreateMarket() {
   const [home, setHome] = useState("");
   const [away, setAway] = useState("");
   const [league, setLeague] = useState("KPL");
+  const [homeCrest, setHomeCrest] = useState("🏠");
+  const [awayCrest, setAwayCrest] = useState("✈️");
+  const [resolvePreset, setResolvePreset] = useState<"24h" | "week" | "month" | "custom">("week");
+  const [customDate, setCustomDate] = useState("");
+  const [shareOpen, setShareOpen] = useState(false);
+  const resolvesAt = useMemo(() => {
+    const d = new Date();
+    if (resolvePreset === "24h") d.setHours(d.getHours() + 24);
+    else if (resolvePreset === "week") { d.setDate(d.getDate() + ((7 - d.getDay()) % 7 || 7)); d.setHours(23, 59, 0, 0); }
+    else if (resolvePreset === "month") { d.setMonth(d.getMonth() + 1, 0); d.setHours(23, 59, 0, 0); }
+    else if (customDate) return new Date(customDate);
+    return d;
+  }, [resolvePreset, customDate]);
   const [seed, setSeed] = useState(20_000);
   /** The creator's opening stake sits on one side; the rest balances the book at 50/50. */
   const [openingStake, setOpeningStake] = useState(2_000);
@@ -185,6 +199,18 @@ function CreateMarket() {
                   placeholder="Resolves Yes if the published MPC statement leaves the Central Bank Rate unchanged. Source: CBK MPC statement."
                   className="w-full resize-none rounded-xl border border-input bg-background px-3 py-2.5 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 />
+              </Field>
+
+              <Field label="Resolution date">
+                <div className="flex flex-wrap gap-1.5">
+                  {([["24h", "24 hours"], ["week", "End of week"], ["month", "End of month"], ["custom", "Custom"]] as const).map(([k, l]) => (
+                    <button key={k} type="button" onClick={() => setResolvePreset(k)} className={cn("rounded-full border px-3 py-1.5 text-xs font-semibold", resolvePreset === k ? "border-primary bg-primary text-primary-foreground" : "border-border text-muted-foreground")}>{l}</button>
+                  ))}
+                </div>
+                {resolvePreset === "custom" && (
+                  <input type="datetime-local" value={customDate} onChange={(e) => setCustomDate(e.target.value)} className="mt-2 w-full rounded-xl border border-input bg-background px-3 py-2.5 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring" />
+                )}
+                <p className="mt-1.5 text-xs text-muted-foreground">Resolves {resolvesAt.toLocaleString("en-KE", { dateStyle: "medium", timeStyle: "short" })}</p>
               </Field>
 
               <Field label="Thumbnail">
@@ -326,6 +352,19 @@ function CreateMarket() {
                     placeholder="League"
                     className="rounded-xl border border-input bg-background px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   />
+                  <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 rounded-xl bg-secondary p-3 sm:col-span-3">
+                    {([[homeCrest, setHomeCrest, home || "Home"], [awayCrest, setAwayCrest, away || "Away"]] as const).map(([crest, set, name], i) => (
+                      <div key={i} className={cn("flex min-w-0 flex-col items-center gap-1", i === 1 && "order-3")}>
+                        <label className="grid size-12 cursor-pointer place-items-center overflow-hidden rounded-full border border-border bg-card text-2xl">
+                          {crest.startsWith("blob:") ? <img src={crest} alt="" className="size-full object-cover" /> : crest}
+                          <input type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) set(URL.createObjectURL(f)); }} />
+                        </label>
+                        <input value={crest.startsWith("blob:") ? "" : crest} onChange={(e) => set(e.target.value.slice(0, 4) || "⚽")} placeholder="Emoji" className="w-16 rounded-lg border border-input bg-background px-2 py-1 text-center text-xs" />
+                        <span className="max-w-full truncate text-xs font-semibold">{name}</span>
+                      </div>
+                    ))}
+                    <span className="order-2 text-sm font-bold text-muted-foreground">VS</span>
+                  </div>
                 </div>
               )}
             </Card>
@@ -476,6 +515,7 @@ function CreateMarket() {
                     onClick={() => {
                       setPublished(true);
                       setStep(4);
+                      setShareOpen(true);
                       toast.success("Market published", {
                         description: `Opened at 50/50 with ${formatKsh(openingStake)} on ${outcomes[openingSide] ?? "your pick"}. Share it to fill the pool.`,
                       });
@@ -489,6 +529,15 @@ function CreateMarket() {
             </Card>
           )}
 
+          <ShareMarketDialog
+            open={shareOpen}
+            onOpenChange={setShareOpen}
+            question={question || "New market on Polka"}
+            marketId="new"
+            volume={seed}
+            outcomes={outcomes.map((label, i) => ({ label, probability: 1 / Math.max(outcomes.length, 1) + (i === 0 ? 0 : 0) }))}
+            trigger={<span className="hidden" />}
+          />
           {step === 4 && (
             <Card title="Share it and fill the pool">
               <p className="text-xs leading-relaxed text-muted-foreground">

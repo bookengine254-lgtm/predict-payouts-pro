@@ -14,7 +14,11 @@ export function ShareMarketDialog({
   volume,
   outcomes,
   trigger,
+  open: openProp,
+  onOpenChange,
 }: {
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
   question: string;
   marketId: string;
   volume: number;
@@ -23,7 +27,9 @@ export function ShareMarketDialog({
 }) {
   const { account } = useAuth();
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [open, setOpen] = useState(false);
+  const [openState, setOpenState] = useState(false);
+  const open = openProp ?? openState;
+  const setOpen = (v: boolean) => { setOpenState(v); onOpenChange?.(v); };
   const [generating, setGenerating] = useState(false);
   const [ready, setReady] = useState(false);
   const [file, setFile] = useState<File | null>(null);
