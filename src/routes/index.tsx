@@ -14,7 +14,7 @@ import {
 import { AppShell } from "@/components/app-shell";
 import { MarketCard } from "@/components/market-card";
 import { LearnBanner } from "@/components/banners";
-import { currentUser, markets, totalPool, type CategoryId, type Market } from "@/lib/mock-data";
+import { categories, currentUser, markets, totalPool, type CategoryId, type Market } from "@/lib/mock-data";
 import { formatKsh } from "@/lib/parimutuel";
 import { cn } from "@/lib/utils";
 import { toneSoft } from "@/components/tone";
@@ -84,6 +84,21 @@ function Discover() {
 
   return (
     <AppShell>
+      <nav aria-label="Categories" className="sticky top-14 z-20 -mx-4 mb-3 flex gap-1.5 overflow-x-auto bg-background/95 px-4 py-2 backdrop-blur [scrollbar-width:none] lg:hidden">
+        {[{ id: "all" as const, label: "All" }, ...categories].map((c) => (
+          <Link
+            key={c.id}
+            to="/"
+            search={c.id === "all" ? {} : { category: c.id }}
+            className={cn(
+              "shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors",
+              category === c.id ? "border-primary bg-primary text-primary-foreground" : "border-border text-muted-foreground",
+            )}
+          >
+            {c.label}
+          </Link>
+        ))}
+      </nav>
       <HeroSlider top={visible[0] ?? open[0]} />
 
       {featured.length > 0 && (

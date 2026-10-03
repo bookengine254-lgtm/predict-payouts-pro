@@ -5,7 +5,7 @@ import { categoryOf, probabilities, totalPool, trendDelta, type Market } from "@
 import { MarketThumb, VersusThumb } from "./market-thumb";
 import { Sparkline } from "./sparkline";
 import { toneSoft } from "./tone";
-import { BadgeCheck, TrendingDown, TrendingUp, Users } from "lucide-react";
+import { BadgeCheck,   Users, Clock } from "lucide-react";
 
 /**
  * Compact market card. Binary, multi-outcome and sports markets all render in the
@@ -60,7 +60,6 @@ export function MarketCard({ market }: { market: Market }) {
               <span className="truncate">{market.sports.league}</span>
             )}
             {market.kind === "multi" && <span className="shrink-0">{market.outcomes.length}-way</span>}
-            <span className="shrink-0 tabular">{market.resolved ? "Resolved" : timeLeft(market.closesAt)}</span>
           </div>
         </div>
         <div className="flex max-w-[5.5rem] flex-col items-end gap-0.5">
@@ -112,9 +111,8 @@ export function MarketCard({ market }: { market: Market }) {
         <span className="flex items-center gap-1 tabular">
           <Users className="size-3" /> {formatCount(market.forecasters)} traders
         </span>
-        <span className={cn("flex items-center gap-0.5 tabular font-medium", delta >= 0 ? "text-yes" : "text-no")}>
-          {delta >= 0 ? <TrendingUp className="size-3" /> : <TrendingDown className="size-3" />}
-          {Math.abs(delta * 100).toFixed(1)} pts
+        <span className="flex items-center gap-1 tabular font-medium text-foreground">
+          <Clock className="size-3" /> {market.resolved ? "Resolved" : timeLeft(market.closesAt)}
         </span>
       </div>
     </Link>

@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Copy, Download, Loader2, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,11 @@ export function ShareMarketDialog({
   volume,
   outcomes,
   trigger,
+  open: openProp,
+  onOpenChange,
 }: {
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
   question: string;
   marketId: string;
   volume: number;
@@ -23,7 +27,9 @@ export function ShareMarketDialog({
 }) {
   const { account } = useAuth();
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [open, setOpen] = useState(false);
+  const [openState, setOpenState] = useState(false);
+  const open = openProp ?? openState;
+  const setOpen = (v: boolean) => { setOpenState(v); onOpenChange?.(v); };
   const [generating, setGenerating] = useState(false);
   const [ready, setReady] = useState(false);
   const [file, setFile] = useState<File | null>(null);
@@ -113,6 +119,11 @@ export function ShareMarketDialog({
     anchor.click();
     URL.revokeObjectURL(href);
   };
+
+  useEffect(() => {
+    if (openProp && !ready) { const t = window.setTimeout(() => void generate(), 50); return () => window.clearTimeout(t); }
+    return undefined;
+  }, [openProp]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <Dialog open={open} onOpenChange={(next) => { setOpen(next); if (next && !ready) window.setTimeout(() => void generate(), 50); }}>

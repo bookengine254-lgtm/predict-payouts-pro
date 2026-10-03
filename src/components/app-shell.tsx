@@ -70,6 +70,8 @@ function TopBar({ back, title }: { back: boolean; title: string }) {
         <Button asChild size="sm" className="hidden lg:inline-flex"><Link to="/wallet" search={{ topup: true }}><Plus /> Deposit</Link></Button>
         <Button asChild variant="ghost" size="icon" className="hidden lg:inline-flex"><Link to="/invite" aria-label="Rewards"><Gift /></Link></Button>
         <Button asChild variant="ghost" size="icon" className="hidden lg:inline-flex"><Link to="/activity" aria-label="Notifications"><Bell /></Link></Button>
+        <Link to="/wallet" search={{}} className="rounded-full bg-secondary px-2.5 py-1 text-xs font-semibold tabular lg:hidden">{formatKsh(currentUser.balance, { compact: true })}</Link>
+        <Button asChild size="sm" className="h-7 px-2 text-xs lg:hidden"><Link to="/wallet" search={{ topup: true }}><Plus /> Top up</Link></Button>
         <NavDrawer avatar={account.avatar} initials={account.initials} />
       </> : <>
         <Link to="/how-it-works" className="hidden text-sm font-medium lg:block">How it works</Link>
