@@ -535,7 +535,7 @@ function CreateMarket() {
             question={question || "New market on Polka"}
             marketId="new"
             volume={seed}
-            outcomes={outcomes.map((label, i) => ({ label, probability: 1 / Math.max(outcomes.length, 1) + (i === 0 ? 0 : 0) }))}
+            outcomes={outcomes.map((label) => ({ label, probability: 1 / Math.max(outcomes.length, 1) }))}
             trigger={<span className="hidden" />}
           />
           {step === 4 && (

@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Copy, Download, Loader2, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -119,6 +119,10 @@ export function ShareMarketDialog({
     anchor.click();
     URL.revokeObjectURL(href);
   };
+
+  useEffect(() => {
+    if (openProp && !ready) { const t = window.setTimeout(() => void generate(), 50); return () => window.clearTimeout(t); }
+  }, [openProp]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <Dialog open={open} onOpenChange={(next) => { setOpen(next); if (next && !ready) window.setTimeout(() => void generate(), 50); }}>
