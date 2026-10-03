@@ -122,6 +122,7 @@ export function ShareMarketDialog({
 
   useEffect(() => {
     if (openProp && !ready) { const t = window.setTimeout(() => void generate(), 50); return () => window.clearTimeout(t); }
+    return undefined;
   }, [openProp]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (

@@ -23,6 +23,7 @@ import { Route as TermsRouteImport } from './routes/terms'
 import { Route as WalletRouteImport } from './routes/wallet'
 import { Route as MarketMarketIdRouteImport } from './routes/market.$marketId'
 import { Route as ProfileHandleRouteImport } from './routes/profile.$handle'
+import { Route as ApiPublicResolveMarketRouteImport } from './routes/api/public/resolve-market'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -94,6 +95,11 @@ const ProfileHandleRoute = ProfileHandleRouteImport.update({
   path: '/profile/$handle',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicResolveMarketRoute = ApiPublicResolveMarketRouteImport.update({
+  id: '/api/public/resolve-market',
+  path: '/api/public/resolve-market',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -110,6 +116,7 @@ export interface FileRoutesByFullPath {
   '/wallet': typeof WalletRoute
   '/market/$marketId': typeof MarketMarketIdRoute
   '/profile/$handle': typeof ProfileHandleRoute
+  '/api/public/resolve-market': typeof ApiPublicResolveMarketRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -126,6 +133,7 @@ export interface FileRoutesByTo {
   '/wallet': typeof WalletRoute
   '/market/$marketId': typeof MarketMarketIdRoute
   '/profile/$handle': typeof ProfileHandleRoute
+  '/api/public/resolve-market': typeof ApiPublicResolveMarketRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -143,6 +151,7 @@ export interface FileRoutesById {
   '/wallet': typeof WalletRoute
   '/market/$marketId': typeof MarketMarketIdRoute
   '/profile/$handle': typeof ProfileHandleRoute
+  '/api/public/resolve-market': typeof ApiPublicResolveMarketRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -161,6 +170,7 @@ export interface FileRouteTypes {
     | '/wallet'
     | '/market/$marketId'
     | '/profile/$handle'
+    | '/api/public/resolve-market'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -177,6 +187,7 @@ export interface FileRouteTypes {
     | '/wallet'
     | '/market/$marketId'
     | '/profile/$handle'
+    | '/api/public/resolve-market'
   id:
     | '__root__'
     | '/'
@@ -193,6 +204,7 @@ export interface FileRouteTypes {
     | '/wallet'
     | '/market/$marketId'
     | '/profile/$handle'
+    | '/api/public/resolve-market'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -210,6 +222,7 @@ export interface RootRouteChildren {
   WalletRoute: typeof WalletRoute
   MarketMarketIdRoute: typeof MarketMarketIdRoute
   ProfileHandleRoute: typeof ProfileHandleRoute
+  ApiPublicResolveMarketRoute: typeof ApiPublicResolveMarketRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -312,6 +325,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProfileHandleRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/resolve-market': {
+      id: '/api/public/resolve-market'
+      path: '/api/public/resolve-market'
+      fullPath: '/api/public/resolve-market'
+      preLoaderRoute: typeof ApiPublicResolveMarketRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -330,6 +350,7 @@ const rootRouteChildren: RootRouteChildren = {
   WalletRoute: WalletRoute,
   MarketMarketIdRoute: MarketMarketIdRoute,
   ProfileHandleRoute: ProfileHandleRoute,
+  ApiPublicResolveMarketRoute: ApiPublicResolveMarketRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
