@@ -8,3 +8,5 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- Keep account-only page presentation behind the shared `AuthGate`; this prevents private mock or live data from appearing before session hydration.
