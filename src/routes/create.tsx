@@ -22,6 +22,7 @@ import { ShareMarketDialog } from "@/components/share-market-dialog";
 import { cn } from "@/lib/utils";
 import { formatKsh } from "@/lib/parimutuel";
 import { categories, type CategoryId } from "@/lib/mock-data";
+import { AuthGate } from "@/components/auth-gate";
 
 export const Route = createFileRoute("/create")({
   head: () => ({
@@ -109,6 +110,8 @@ function CreateMarket() {
 
   return (
     <AppShell>
+      <AuthGate feature="market creation">
+      <div>
       <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 sm:flex sm:justify-between">
         <div className="min-w-0">
           <h1 className="truncate text-xl font-semibold sm:text-2xl">Create a market</h1>
@@ -132,7 +135,7 @@ function CreateMarket() {
         ))}
       </ol>
 
-      <div className="mt-5 grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
+      <div className="mt-5 grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(340px,2fr)]">
         <div className="min-w-0 space-y-4">
           {step === 0 && (
             <Card title="What are people forecasting?">
@@ -670,7 +673,7 @@ function CreateMarket() {
           </div>
         </div>
 
-        <aside className="lg:sticky lg:top-20 lg:self-start">
+        <aside className="lg:sticky lg:top-24 lg:self-start">
           <div className="rounded-2xl bg-card p-4 shadow-card">
             <h2 className="text-sm font-semibold">Preview</h2>
             <div className="mt-3 rounded-xl border border-border p-3">
@@ -723,6 +726,8 @@ function CreateMarket() {
           </Link>
         </aside>
       </div>
+      </div>
+      </AuthGate>
     </AppShell>
   );
 }

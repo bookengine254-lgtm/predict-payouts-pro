@@ -5,6 +5,7 @@ import { AppShell } from "@/components/app-shell";
 import { toneSoft } from "@/components/tone";
 import { cn } from "@/lib/utils";
 import { activity, type ActivityItem } from "@/lib/mock-data";
+import { AuthGate } from "@/components/auth-gate";
 
 export const Route = createFileRoute("/activity")({
   head: () => ({
@@ -59,6 +60,8 @@ function ActivityPage() {
 
   return (
     <AppShell>
+      <AuthGate feature="your activity">
+      <div>
       <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 sm:flex sm:justify-between">
         <div className="min-w-0">
           <h1 className="font-display text-2xl">Activity</h1>
@@ -87,7 +90,7 @@ function ActivityPage() {
         ))}
       </div>
 
-      <ul className="mt-4 space-y-2.5 rise-in">
+      <ul className="mt-4 divide-y divide-border overflow-hidden rounded-lg border border-border bg-card rise-in">
         {items.map((a) => {
           const Icon = ICONS[a.kind];
           const body = (
@@ -108,12 +111,12 @@ function ActivityPage() {
                 <Link
                   to="/market/$marketId"
                   params={{ marketId: a.marketId }}
-                  className="flex items-start gap-3 rounded-2xl bg-card p-3.5 bevel press hover:bg-accent/40"
+                  className="flex items-start gap-3 p-4 press hover:bg-accent/40 lg:grid lg:grid-cols-[auto_minmax(0,1fr)_120px] lg:items-center lg:px-6"
                 >
                   {body}
                 </Link>
               ) : (
-                <div className="flex items-start gap-3 rounded-2xl bg-card p-3.5 bevel">{body}</div>
+                <div className="flex items-start gap-3 p-4 lg:grid lg:grid-cols-[auto_minmax(0,1fr)_120px] lg:items-center lg:px-6">{body}</div>
               )}
             </li>
           );
@@ -135,6 +138,8 @@ function ActivityPage() {
           Quiet feed? Invite three friends — arguments make better forecasts (and pay you commission).
         </span>
       </Link>
+      </div>
+      </AuthGate>
     </AppShell>
   );
 }

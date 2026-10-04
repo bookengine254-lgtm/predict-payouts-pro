@@ -18,6 +18,7 @@ import { AppShell } from "@/components/app-shell";
 import { cn } from "@/lib/utils";
 import { formatKsh } from "@/lib/parimutuel";
 import { currentUser, transactions, type Transaction } from "@/lib/mock-data";
+import { AuthGate } from "@/components/auth-gate";
 
 export const Route = createFileRoute("/wallet")({
   validateSearch: (search: Record<string, unknown>): { topup?: boolean } =>
@@ -63,6 +64,8 @@ function WalletPage() {
 
   return (
     <AppShell>
+      <AuthGate feature="your wallet">
+      <div>
       <header>
         <h1 className="text-xl font-semibold sm:text-2xl">Wallet</h1>
         <p className="mt-1 text-sm text-muted-foreground">
@@ -70,7 +73,7 @@ function WalletPage() {
         </p>
       </header>
 
-      <div className="mt-5 grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
+      <div className="mt-5 grid gap-8 lg:grid-cols-[minmax(0,1fr)_380px]">
         <div className="min-w-0 space-y-8">
           {/* Balance hero — borderless, a single deep navy field with a soft glow. */}
           <section className="relative overflow-hidden rounded-3xl bg-primary px-5 py-6 text-primary-foreground shadow-lift">
@@ -96,7 +99,7 @@ function WalletPage() {
 
           <section>
             <h2 className="text-sm font-semibold">Ledger</h2>
-            <ul className="mt-2 divide-y divide-border/50">
+            <ul className="mt-2 divide-y divide-border/50 rounded-lg border border-border bg-card px-4">
               {transactions.map((t) => (
                 <li key={t.id} className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 py-3">
                   <span
@@ -266,6 +269,8 @@ function WalletPage() {
           </Link>
         </aside>
       </div>
+      </div>
+      </AuthGate>
     </AppShell>
   );
 }

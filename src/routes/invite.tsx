@@ -5,6 +5,7 @@ import { AppShell } from "@/components/app-shell";
 import { InviteBanner } from "@/components/banners";
 import { formatKsh } from "@/lib/parimutuel";
 import { currentUser } from "@/lib/mock-data";
+import { AuthGate } from "@/components/auth-gate";
 
 export const Route = createFileRoute("/invite")({
   head: () => ({
@@ -34,6 +35,8 @@ function Invite() {
   const code = "POLKA-YN47";
   return (
     <AppShell>
+      <AuthGate feature="your rewards">
+      <div>
       <header>
         <h1 className="text-xl font-semibold sm:text-2xl">Rewards</h1>
         <p className="mt-1 text-sm text-muted-foreground">
@@ -94,6 +97,8 @@ function Invite() {
           </span>
         </Link>
       </div>
+      </div>
+      </AuthGate>
     </AppShell>
   );
 }

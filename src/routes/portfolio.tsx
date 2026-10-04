@@ -7,6 +7,7 @@ import { MarketThumb } from "@/components/market-thumb";
 import { cn } from "@/lib/utils";
 import { formatKsh, formatPct, quotePayout, timeLeft } from "@/lib/parimutuel";
 import { currentUser, marketById, positions, probabilities, totalPool } from "@/lib/mock-data";
+import { AuthGate } from "@/components/auth-gate";
 
 export const Route = createFileRoute("/portfolio")({
   head: () => ({
@@ -62,6 +63,8 @@ function Portfolio() {
 
   return (
     <AppShell>
+      <AuthGate feature="your portfolio">
+      <div>
       <header>
         <h1 className="text-xl font-semibold sm:text-2xl">Portfolio</h1>
         <p className="mt-1 text-sm text-muted-foreground">
@@ -98,7 +101,7 @@ function Portfolio() {
         ))}
       </div>
 
-      <ul className="mt-4 space-y-2.5">
+      <ul className="mt-4 grid gap-3 lg:grid-cols-2">
         {visible.map((r) => (
           <li key={`${r.marketId}-${r.outcomeId}`}>
             <div className="rounded-2xl bg-card p-3 shadow-card">
@@ -181,6 +184,8 @@ function Portfolio() {
           </Link>
         </div>
       )}
+      </div>
+      </AuthGate>
     </AppShell>
   );
 }

@@ -1,6 +1,6 @@
 import { Link, useRouter, useRouterState } from "@tanstack/react-router";
 import { useState, type ReactNode } from "react";
-import { Bell, BarChart3, ChevronLeft, Compass, Gift, Menu, Moon, Plus, Search, Settings, Sun, Trophy, User, Wallet } from "lucide-react";
+import { Bell, BarChart3, ChevronLeft, Compass, Gift, Menu, Moon, Plus, Search, Settings, Sun, Trophy, User } from "lucide-react";
 import { Logo } from "./logo";
 import { AuthSheet } from "./auth-sheet";
 import { OnboardingSheet } from "./onboarding-sheet";
@@ -26,15 +26,17 @@ function titleFor(pathname: string) { return PAGE_TITLES[pathname] ?? PAGE_TITLE
 
 export function AppShell({ children, wide = false }: { children: ReactNode; wide?: boolean }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const { account, openAuth } = useAuth();
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <div className="sticky top-0 z-40 border-b border-border/60 bg-background/90 backdrop-blur-lg">
         <TopBar back={pathname !== "/" && pathname !== "/leaderboard" && pathname !== "/activity"} title={titleFor(pathname)} />
       </div>
-      <main className={cn("mx-auto w-full flex-1 px-4 pt-4 pb-28 lg:px-6 lg:pt-6 lg:pb-12", wide ? "max-w-[1500px]" : "max-w-6xl")}>{children}</main>
+      <main className={cn("mx-auto w-full max-w-7xl flex-1 px-4 pt-4 pb-28 sm:px-6 lg:px-8 lg:pt-6", account ? "lg:pb-12" : "lg:pb-28", wide && "max-w-7xl")}>{children}</main>
       <SiteFooter />
       <BottomNav />
       <QuickActions />
+      {!account && <div className="fixed inset-x-0 bottom-5 z-50 hidden px-6 lg:block"><div className="mx-auto flex max-w-2xl items-center justify-between gap-5 rounded-lg border border-border bg-card/95 px-5 py-3 shadow-lift backdrop-blur"><p className="text-sm font-medium">Sign up to forecast markets, split pools, and cash out to M-Pesa.</p><Button size="sm" onClick={() => openAuth("signup")}>Get started</Button></div></div>}
       <AuthSheet />
       <OnboardingSheet />
     </div>
@@ -46,9 +48,10 @@ function MarketSearch() {
   const results = q.trim() ? markets.filter((m) => `${m.question} ${m.category}`.toLowerCase().includes(q.toLowerCase())).slice(0, 6) : [];
   return (
     <div className="relative min-w-0 flex-1">
-      <label className="flex h-9 items-center gap-2 rounded-md border border-border bg-secondary/60 px-3">
+      <label className="flex h-10 items-center gap-2 rounded-md border border-border bg-secondary/60 px-3 focus-within:border-primary/60 focus-within:ring-2 focus-within:ring-ring/20">
         <Search className="size-4 shrink-0 text-muted-foreground" />
         <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search markets" className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground" />
+        <kbd className="rounded border border-border bg-card px-1.5 py-0.5 text-[0.65rem] text-muted-foreground">/</kbd>
       </label>
       {results.length > 0 && <ul className="absolute inset-x-0 top-11 z-50 rounded-lg border border-border bg-card p-1 shadow-card">{results.map((m) => <li key={m.id}><Link to="/market/$marketId" params={{ marketId: m.id }} onClick={() => setQ("")} className="flex items-center gap-2 rounded-md px-2 py-2 hover:bg-accent"><span className="min-w-0 flex-1 truncate text-sm">{m.question}</span><span className="text-xs text-muted-foreground">{formatKsh(totalPool(m), { compact: true })}</span></Link></li>)}</ul>}
     </div>
@@ -59,22 +62,19 @@ function TopBar({ back, title }: { back: boolean; title: string }) {
   const { account, openAuth } = useAuth();
   const router = useRouter();
   return (
-    <header className="mx-auto flex h-14 max-w-[1500px] items-center gap-2 px-4 lg:gap-4 lg:px-6">
+    <header className="mx-auto grid h-14 w-full max-w-7xl grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 px-4 sm:px-6 lg:h-16 lg:gap-5 lg:px-8">
       {back && <Button variant="ghost" size="icon" onClick={() => router.history.back()} aria-label="Go back" className="lg:hidden"><ChevronLeft /></Button>}
-      <Logo compact />
+      <div className="flex items-center gap-7"><Logo className="lg:scale-110" /><nav className="hidden items-center gap-5 lg:flex"><Link to="/" className="text-sm font-medium text-muted-foreground hover:text-foreground">Markets</Link><Link to="/leaderboard" className="text-sm font-medium text-muted-foreground hover:text-foreground">Leaderboard</Link><Link to="/how-it-works" className="whitespace-nowrap text-sm font-medium text-muted-foreground hover:text-foreground">How it works</Link></nav></div>
       <span className="min-w-0 flex-1 truncate text-xs font-semibold text-muted-foreground lg:hidden">{back ? title : ""}</span>
-      <div className="hidden max-w-xl flex-1 lg:block"><MarketSearch /></div>
+      <div className="hidden min-w-0 justify-self-center lg:block lg:w-full lg:max-w-xl"><MarketSearch /></div>
       {account ? <>
-        <Link to="/portfolio" className="hidden text-xs text-muted-foreground lg:block">Portfolio <strong className="ml-1 text-foreground tabular">{formatKsh(currentUser.locked, { compact: true })}</strong></Link>
-        <Link to="/wallet" search={{}} className="hidden text-xs text-muted-foreground lg:block">Cash <strong className="ml-1 text-foreground tabular">{formatKsh(currentUser.balance, { compact: true })}</strong></Link>
-        <Button asChild size="sm" className="hidden lg:inline-flex"><Link to="/wallet" search={{ topup: true }}><Plus /> Deposit</Link></Button>
-        <Button asChild variant="ghost" size="icon" className="hidden lg:inline-flex"><Link to="/invite" aria-label="Rewards"><Gift /></Link></Button>
+        <Link to="/wallet" search={{}} className="hidden rounded-md bg-secondary px-3 py-2 text-xs text-muted-foreground lg:block">Cash <strong className="ml-1 text-foreground tabular">{formatKsh(currentUser.balance, { compact: true })}</strong></Link>
+        <Button asChild size="sm" className="hidden lg:inline-flex"><Link to="/wallet" search={{ topup: true }}><Plus /> Top up</Link></Button>
         <Button asChild variant="ghost" size="icon" className="hidden lg:inline-flex"><Link to="/activity" aria-label="Notifications"><Bell /></Link></Button>
         <Link to="/wallet" search={{}} className="rounded-full bg-secondary px-2.5 py-1 text-xs font-semibold tabular lg:hidden">{formatKsh(currentUser.balance, { compact: true })}</Link>
         <Button asChild size="sm" className="h-7 px-2 text-xs lg:hidden"><Link to="/wallet" search={{ topup: true }}><Plus /> Top up</Link></Button>
         <NavDrawer avatar={account.avatar} initials={account.initials} />
       </> : <>
-        <Link to="/how-it-works" className="hidden text-sm font-medium lg:block">How it works</Link>
         <Button variant="ghost" size="sm" onClick={() => openAuth("signin")}>Log in</Button>
         <Button size="sm" onClick={() => openAuth("signup")}>Sign up</Button>
         <NavDrawer />
@@ -104,4 +104,4 @@ function NavDrawer({ avatar, initials }: { avatar?: string | null; initials?: st
 function BottomNav() { const pathname = useRouterState({ select: (s) => s.location.pathname }); return <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-lg lg:hidden"><ul className="grid grid-cols-5">{primaryNav.slice(0,2).map((item) => <NavItem key={item.to} {...item} active={pathname === item.to} />)}<li><Link to="/invite" className="flex flex-col items-center gap-0.5 py-2 text-[0.62rem] text-muted-foreground"><span className="grid size-8 place-items-center rounded-full bg-grape-soft text-grape"><Gift className="size-4" /></span>Rewards</Link></li>{primaryNav.slice(2).map((item) => <NavItem key={item.to} {...item} active={pathname.startsWith(item.to)} />)}</ul></nav>; }
 function NavItem({ to, label, icon: Icon, active }: { to: string; label: string; icon: React.ComponentType<{ className?: string }>; active: boolean }) { return <li><Link to={to} className={cn("flex flex-col items-center gap-1 py-3 text-[0.62rem]", active ? "text-primary" : "text-muted-foreground")}><Icon className="size-5" />{label}</Link></li>; }
 
-function SiteFooter() { return <footer className="mt-10 border-t border-border bg-secondary/40 pb-24 lg:pb-0"><div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:grid-cols-2 lg:grid-cols-4"><div><Logo /><p className="mt-3 text-xs leading-relaxed text-muted-foreground">The largest prediction market in East Africa. Forecast events, join shared pools and settle through M-Pesa.</p></div>{drawerGroups.map((group) => <div key={group.title}><h3 className="text-xs font-semibold uppercase text-muted-foreground">{group.title}</h3><ul className="mt-3 space-y-2">{group.links.map(([to,label]) => <li key={to+label}><Link to={to} className="text-sm hover:text-primary">{label}</Link></li>)}</ul></div>)}</div><div className="border-t border-border px-4 py-4 text-center text-xs text-muted-foreground"><Link to="/terms" className="hover:text-primary">Terms</Link> · <a href="https://wa.me/254116067033" target="_blank" rel="noreferrer" className="hover:text-primary">WhatsApp support: 0116067033</a> · 18+</div></footer>; }
+function SiteFooter() { return <footer className="mt-10 border-t border-border bg-secondary/40 pb-24 lg:pb-0"><div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:grid-cols-2 sm:px-6 lg:grid-cols-4 lg:px-8"><div><Logo /><p className="mt-3 text-xs leading-relaxed text-muted-foreground">The largest prediction market in East Africa. Forecast events, join shared pools and settle through M-Pesa.</p></div>{drawerGroups.map((group) => <div key={group.title}><h3 className="text-xs font-semibold uppercase text-muted-foreground">{group.title}</h3><ul className="mt-3 space-y-2">{group.links.map(([to,label]) => <li key={to+label}><Link to={to} className="text-sm hover:text-primary">{label}</Link></li>)}</ul></div>)}</div><div className="border-t border-border px-4 py-4 text-center text-xs text-muted-foreground"><Link to="/terms" className="hover:text-primary">Terms</Link> · <a href="https://wa.me/254116067033" target="_blank" rel="noreferrer" className="hover:text-primary">WhatsApp support: 0116067033</a> · 18+</div></footer>; }
