@@ -114,7 +114,7 @@ function MarketDetail() {
         <span className={toneText[cat.tone]}>{cat.label}</span>
       </nav>
 
-      <div className="grid gap-5 pb-32 lg:grid-cols-[minmax(0,1fr)_360px] lg:pb-0">
+      <div className="grid gap-6 pb-32 lg:grid-cols-[minmax(0,13fr)_minmax(320px,7fr)] lg:pb-0">
         <div className="min-w-0 space-y-4">
           <header className="rounded-2xl bg-card p-4 sm:p-5">
             {isVersus ? (
@@ -410,7 +410,7 @@ function MarketDetail() {
           </section>
         </div>
 
-        <aside className="lg:sticky lg:top-20 lg:self-start">
+        <aside className="lg:sticky lg:top-24 lg:self-start">
           <ForecastDock market={market} />
 
           <div className="mt-3 hidden rounded-2xl bg-card p-4 bevel lg:block">

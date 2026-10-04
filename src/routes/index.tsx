@@ -99,12 +99,21 @@ function Discover() {
           </Link>
         ))}
       </nav>
-      <HeroSlider top={visible[0] ?? open[0]} />
+      {category === "all" && <HeroSlider top={visible[0] ?? open[0]} />}
+
+      <div className={cn("hidden items-center justify-between gap-4 border-b border-border py-3 lg:flex", category === "all" ? "mt-5" : "mt-0")}>
+        <nav aria-label="Market categories" className="flex min-w-0 items-center gap-1 overflow-x-auto hide-scrollbar">
+          {[{ id: "all" as const, label: "All" }, ...categories.filter((c) => ["politics", "sports", "crypto", "economy", "weather"].includes(c.id))].map((c) => (
+            <Link key={c.id} to="/" search={c.id === "all" ? {} : { category: c.id }} className={cn("shrink-0 rounded-md px-3 py-2 text-sm font-medium", category === c.id ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-accent hover:text-foreground")}>{c.label}</Link>
+          ))}
+        </nav>
+        <SortControls sort={sort} setSort={setSort} />
+      </div>
 
       {featured.length > 0 && (
         <section className="mt-6">
           <SectionHead icon={Flame} title="Featured pools" hint="Deepest liquidity right now" />
-          <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {featured.map((m) => (
               <MarketCard key={m.id} market={m} />
             ))}
@@ -120,29 +129,11 @@ function Discover() {
             title="All markets"
             hint={`${visible.length} open`}
           />
-          <div className="flex gap-1 rounded-xl bg-secondary p-1">
-            {(
-              [
-                ["trending", "Trending"],
-                ["new", "New"],
-                ["closing", "Closing"],
-              ] as const
-            ).map(([key, label]) => (
-              <button
-                key={key}
-                type="button"
-                onClick={() => setSort(key)}
-                className={cn(
-                  "rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors",
-                  sort === key ? "bg-card text-foreground shadow-card" : "text-muted-foreground hover:text-foreground",
-                )}
-              >
-                {label}
-              </button>
-            ))}
+          <div className="lg:hidden">
+            <SortControls sort={sort} setSort={setSort} />
           </div>
         </div>
-        <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {visible.map((m) => (
             <MarketCard key={m.id} market={m} />
           ))}
@@ -186,6 +177,10 @@ function Discover() {
       </div>
     </AppShell>
   );
+}
+
+function SortControls({ sort, setSort }: { sort: Sort; setSort: (sort: Sort) => void }) {
+  return <div className="flex gap-1 rounded-md bg-secondary p-1">{([['trending', 'Trending'], ['new', 'New'], ['closing', 'Closing']] as const).map(([key, label]) => <button key={key} type="button" onClick={() => setSort(key)} className={cn("rounded px-3 py-1.5 text-xs font-semibold", sort === key ? "bg-card text-foreground shadow-card" : "text-muted-foreground hover:text-foreground")}>{label}</button>)}</div>;
 }
 
 

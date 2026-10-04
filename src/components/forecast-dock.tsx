@@ -5,6 +5,7 @@ import { toneStroke } from "./tone";
 import { cn } from "@/lib/utils";
 import { formatKsh, formatPct, quotePayout } from "@/lib/parimutuel";
 import { NOW, probabilities, totalPool, type Market, type Outcome } from "@/lib/mock-data";
+import { useAuth } from "@/hooks/use-auth";
 
 const AMOUNTS = [100, 200, 500, 1_000, 2_500];
 
@@ -25,6 +26,7 @@ type Phase = "idle" | "placing" | "placed";
  * a "waiting for resolution" state with a route back to trading.
  */
 export function ForecastDock({ market }: { market: Market }) {
+  const { account, openAuth } = useAuth();
   const [open, setOpen] = useState(false);
   const [phase, setPhase] = useState<Phase>("idle");
   const [outcomeId, setOutcomeId] = useState<string | null>(null);
@@ -49,6 +51,10 @@ export function ForecastDock({ market }: { market: Market }) {
   );
 
   const trade = () => {
+    if (!account) {
+      openAuth("signup");
+      return;
+    }
     if (!selected) return;
     setPhase("placing");
     window.setTimeout(() => {
@@ -97,7 +103,7 @@ export function ForecastDock({ market }: { market: Market }) {
         ) : (
           <button
             type="button"
-            onClick={() => setOpen(true)}
+            onClick={() => account ? setOpen(true) : openAuth("signup")}
             disabled={closed}
             className="flex w-full items-center justify-between gap-3 rounded-2xl bg-yes px-4 py-3.5 text-left text-primary-foreground bevel-raised press disabled:opacity-50"
           >
@@ -127,6 +133,8 @@ export function ForecastDock({ market }: { market: Market }) {
           phase={phase}
           placed={placed}
           onTrade={trade}
+          requireAuth={() => openAuth("signup")}
+          authenticated={Boolean(account)}
           onReset={() => {
             setPlaced(null);
             setPhase("idle");
@@ -170,6 +178,8 @@ export function ForecastDock({ market }: { market: Market }) {
               phase={phase}
               placed={placed}
               onTrade={trade}
+              requireAuth={() => openAuth("signup")}
+              authenticated={Boolean(account)}
               onReset={() => {
                 setPlaced(null);
                 setPhase("idle");
@@ -196,6 +206,8 @@ function Panel({
   placed,
   onTrade,
   onReset,
+  requireAuth,
+  authenticated,
   bare = false,
 }: {
   market: Market;
@@ -209,6 +221,8 @@ function Panel({
   placed: { outcome: Outcome; stake: number; payout: number } | null;
   onTrade: () => void;
   onReset: () => void;
+  requireAuth: () => void;
+  authenticated: boolean;
   bare?: boolean;
 }) {
   const selected = market.outcomes.find((o) => o.id === outcomeId) ?? null;
@@ -247,7 +261,7 @@ function Panel({
                 <button
                   key={o.id}
                   type="button"
-                  onClick={() => setOutcomeId(o.id)}
+                  onClick={() => authenticated ? setOutcomeId(o.id) : requireAuth()}
                   className={cn(
                     "flex items-center justify-between gap-2 rounded-xl border px-3 py-3 text-left press",
                     active ? "border-current bevel" : "border-border hover:bg-accent",
@@ -299,7 +313,7 @@ function Panel({
           <button
             type="button"
             disabled={!selected || closed || stake <= 0 || phase === "placing"}
-            onClick={onTrade}
+            onClick={authenticated ? onTrade : requireAuth}
             className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-yes py-4 text-base font-semibold text-primary-foreground bevel-raised press disabled:opacity-40"
           >
             {phase === "placing" ? (
@@ -309,7 +323,7 @@ function Panel({
             ) : selected ? (
               `Trade ${selected.label} · ${formatKsh(stake)}`
             ) : (
-              "Select an outcome"
+              authenticated ? "Select an outcome" : "Sign up to forecast"
             )}
           </button>
           <p className="mt-2 flex items-start gap-1.5 text-[0.72rem] leading-relaxed text-muted-foreground">

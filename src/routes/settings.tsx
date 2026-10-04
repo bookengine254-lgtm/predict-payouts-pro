@@ -26,6 +26,7 @@ import { cn } from "@/lib/utils";
 import { formatKsh } from "@/lib/parimutuel";
 import { usePrefs, type TextScale } from "@/hooks/use-prefs";
 import { currentUser } from "@/lib/mock-data";
+import { AuthGate } from "@/components/auth-gate";
 
 export const Route = createFileRoute("/settings")({
   head: () => ({
@@ -78,6 +79,8 @@ function SettingsPage() {
 
   return (
     <AppShell>
+      <AuthGate feature="your settings">
+      <div>
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div className="min-w-0">
           <h1 className="text-xl font-semibold sm:text-2xl">Settings</h1>
@@ -334,6 +337,8 @@ function SettingsPage() {
           </button>
         </Section>
       </div>
+      </div>
+      </AuthGate>
     </AppShell>
   );
 }
