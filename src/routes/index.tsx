@@ -18,6 +18,8 @@ import { categories, currentUser, markets, totalPool, type CategoryId, type Mark
 import { formatKsh } from "@/lib/parimutuel";
 import { cn } from "@/lib/utils";
 import { toneSoft } from "@/components/tone";
+import { useAuth } from "@/hooks/use-auth";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/")({
   validateSearch: (search: Record<string, unknown>): { category?: CategoryId | undefined } => ({
@@ -113,7 +115,7 @@ function Discover() {
       {featured.length > 0 && (
         <section className="mt-6">
           <SectionHead icon={Flame} title="Featured pools" hint="Deepest liquidity right now" />
-          <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {featured.map((m) => (
               <MarketCard key={m.id} market={m} />
             ))}
@@ -133,7 +135,7 @@ function Discover() {
             <SortControls sort={sort} setSort={setSort} />
           </div>
         </div>
-        <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {visible.map((m) => (
             <MarketCard key={m.id} market={m} />
           ))}
@@ -180,7 +182,7 @@ function Discover() {
 }
 
 function SortControls({ sort, setSort }: { sort: Sort; setSort: (sort: Sort) => void }) {
-  return <div className="flex gap-1 rounded-md bg-secondary p-1">{([['trending', 'Trending'], ['new', 'New'], ['closing', 'Closing']] as const).map(([key, label]) => <button key={key} type="button" onClick={() => setSort(key)} className={cn("rounded px-3 py-1.5 text-xs font-semibold", sort === key ? "bg-card text-foreground shadow-card" : "text-muted-foreground hover:text-foreground")}>{label}</button>)}</div>;
+  return <div className="flex gap-1 rounded-md bg-secondary p-1">{([['trending', 'Trending'], ['new', 'New'], ['closing', 'Closing']] as const).map(([key, label]) => <Button key={key} type="button" size="sm" variant="ghost" onClick={() => setSort(key)} className={cn("h-7 rounded px-3 text-xs font-semibold", sort === key ? "bg-card text-foreground shadow-card" : "text-muted-foreground hover:text-foreground")}>{label}</Button>)}</div>;
 }
 
 
@@ -219,7 +221,9 @@ type Slide = {
  * no platform-wide volume or user counts.
  */
 function HeroSlider({ top }: { top: Market | undefined }) {
+  const { account } = useAuth();
   const slides: Slide[] = [
+    ...(account ? [
     {
       key: "you",
       eyebrow: "Your standing",
@@ -234,7 +238,8 @@ function HeroSlider({ top }: { top: Market | undefined }) {
         { label: "In play", value: formatKsh(currentUser.locked, { compact: true }) },
         { label: "Day streak", value: String(currentUser.streak) },
       ],
-    },
+    } satisfies Slide,
+    ] : []),
     ...(top
       ? [
           {
@@ -289,7 +294,7 @@ function HeroSlider({ top }: { top: Market | undefined }) {
     return () => clearInterval(t);
   }, [count]);
 
-  const slide = slides[i]!;
+  const slide = slides[i % count]!;
   const Icon = slide.icon;
 
   return (
