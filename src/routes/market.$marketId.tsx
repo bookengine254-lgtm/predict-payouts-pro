@@ -34,7 +34,7 @@ import {
 } from "@/lib/mock-data";
 
 export const Route = createFileRoute("/market/$marketId")({
-  validateSearch: (search: Record<string, unknown>): { outcome?: string } => ({ outcome: typeof search["outcome"] === "string" ? search["outcome"] : undefined }),
+  validateSearch: (search: Record<string, unknown>): { outcome?: string } => typeof search["outcome"] === "string" ? { outcome: search["outcome"] } : {},
   loader: ({ params }): { market: Market } => {
     const market = marketById(params.marketId);
     if (!market) throw notFound();
