@@ -34,6 +34,7 @@ import {
 } from "@/lib/mock-data";
 
 export const Route = createFileRoute("/market/$marketId")({
+  validateSearch: (search: Record<string, unknown>): { outcome?: string } => ({ outcome: typeof search["outcome"] === "string" ? search["outcome"] : undefined }),
   loader: ({ params }): { market: Market } => {
     const market = marketById(params.marketId);
     if (!market) throw notFound();
@@ -91,6 +92,7 @@ const SEED_COMMENTS: MarketComment[] = [
 
 function MarketDetail() {
   const { market } = Route.useLoaderData() as { market: Market };
+  const { outcome } = Route.useSearch();
   const [tab, setTab] = useState<(typeof TABS)[number]>("Description");
   const [comments, setComments] = useState(SEED_COMMENTS);
   const [draft, setDraft] = useState("");
@@ -411,7 +413,7 @@ function MarketDetail() {
         </div>
 
         <aside className="lg:sticky lg:top-24 lg:self-start">
-          <ForecastDock market={market} />
+          <ForecastDock key={`${market.id}-${outcome ?? ""}`} market={market} initialOutcome={outcome} />
 
           <div className="mt-3 hidden rounded-2xl bg-card p-4 bevel lg:block">
             <h3 className="text-sm font-semibold">Top forecasters here</h3>

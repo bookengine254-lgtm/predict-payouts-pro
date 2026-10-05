@@ -1,7 +1,6 @@
 import { Link, useRouter, useRouterState } from "@tanstack/react-router";
 import { useState, type ReactNode } from "react";
 import { Bell, BarChart3, ChevronLeft, Compass, Gift, Menu, Moon, Plus, Search, Settings, Sun, Trophy, User } from "lucide-react";
-import { Logo } from "./logo";
 import { AuthSheet } from "./auth-sheet";
 import { OnboardingSheet } from "./onboarding-sheet";
 import { QuickActions } from "./quick-actions";
@@ -29,7 +28,7 @@ export function AppShell({ children, wide = false }: { children: ReactNode; wide
   const { account, openAuth } = useAuth();
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <div className="sticky top-0 z-40 border-b border-border/60 bg-background/90 backdrop-blur-lg">
+      <div className="sticky top-0 z-40 border-b border-border/60 bg-background/95 backdrop-blur-lg">
         <TopBar back={pathname !== "/" && pathname !== "/leaderboard" && pathname !== "/activity"} title={titleFor(pathname)} />
       </div>
       <main className={cn("mx-auto w-full max-w-7xl flex-1 px-4 pt-4 pb-28 sm:px-6 lg:px-8 lg:pt-6", account ? "lg:pb-12" : "lg:pb-28", wide && "max-w-7xl")}>{children}</main>
@@ -62,11 +61,14 @@ function TopBar({ back, title }: { back: boolean; title: string }) {
   const { account, openAuth } = useAuth();
   const router = useRouter();
   return (
-    <header className="mx-auto grid h-14 w-full max-w-7xl grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 px-4 sm:px-6 lg:h-16 lg:gap-5 lg:px-8">
-      {back && <Button variant="ghost" size="icon" onClick={() => router.history.back()} aria-label="Go back" className="lg:hidden"><ChevronLeft /></Button>}
-      <div className="flex items-center gap-7"><Logo className="lg:scale-110" /><nav className="hidden items-center gap-5 lg:flex"><Link to="/" className="text-sm font-medium text-muted-foreground hover:text-foreground">Markets</Link><Link to="/leaderboard" className="text-sm font-medium text-muted-foreground hover:text-foreground">Leaderboard</Link><Link to="/how-it-works" className="whitespace-nowrap text-sm font-medium text-muted-foreground hover:text-foreground">How it works</Link></nav></div>
-      <span className="min-w-0 flex-1 truncate text-xs font-semibold text-muted-foreground lg:hidden">{back ? title : ""}</span>
-      <div className="hidden min-w-0 justify-self-center lg:block lg:w-full lg:max-w-xl"><MarketSearch /></div>
+    <header className="mx-auto flex h-14 w-full max-w-7xl items-center justify-between gap-2 px-3 sm:px-6 lg:h-16 lg:gap-5 lg:px-8">
+      <div className="flex min-w-0 shrink-0 items-center gap-2 lg:gap-6">
+        {back && <Button variant="ghost" size="icon" onClick={() => router.history.back()} aria-label="Go back" className="-ml-2 shrink-0 lg:hidden"><ChevronLeft /></Button>}
+        <Link to="/" aria-label="Polka home" className="shrink-0 font-display text-xl font-bold text-foreground lg:text-2xl">POLKA</Link>
+        <nav className="hidden items-center gap-5 lg:flex"><Link to="/" className="whitespace-nowrap text-sm font-medium text-muted-foreground hover:text-foreground">Markets</Link><Link to="/leaderboard" className="whitespace-nowrap text-sm font-medium text-muted-foreground hover:text-foreground">Leaderboard</Link><Link to="/how-it-works" className="whitespace-nowrap text-sm font-medium text-muted-foreground hover:text-foreground">How it works</Link></nav>
+      </div>
+      <div className="hidden min-w-0 max-w-md flex-1 md:flex lg:mx-3"><MarketSearch /></div>
+      <div className="flex shrink-0 items-center gap-1 sm:gap-2 lg:gap-2.5">
       {account ? <>
         <Link to="/wallet" search={{}} className="hidden rounded-md bg-secondary px-3 py-2 text-xs text-muted-foreground lg:block">Cash <strong className="ml-1 text-foreground tabular">{formatKsh(currentUser.balance, { compact: true })}</strong></Link>
         <Button asChild size="sm" className="hidden lg:inline-flex"><Link to="/wallet" search={{ topup: true }}><Plus /> Top up</Link></Button>
@@ -75,10 +77,11 @@ function TopBar({ back, title }: { back: boolean; title: string }) {
         <Button asChild size="sm" className="h-7 px-2 text-xs lg:hidden"><Link to="/wallet" search={{ topup: true }}><Plus /> Top up</Link></Button>
         <NavDrawer avatar={account.avatar} initials={account.initials} />
       </> : <>
-        <Button variant="ghost" size="sm" onClick={() => openAuth("signin")}>Log in</Button>
-        <Button size="sm" onClick={() => openAuth("signup")}>Sign up</Button>
-        <NavDrawer />
+        <Button size="sm" onClick={() => openAuth("signin")} className="bg-yes text-primary-foreground hover:bg-yes/90">Sign in</Button>
+        <Button size="sm" variant="outline" onClick={() => openAuth("signup")}>Sign up</Button>
+        <div className="lg:hidden"><NavDrawer /></div>
       </>}
+      </div>
     </header>
   );
 }
@@ -104,4 +107,4 @@ function NavDrawer({ avatar, initials }: { avatar?: string | null; initials?: st
 function BottomNav() { const pathname = useRouterState({ select: (s) => s.location.pathname }); return <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-lg lg:hidden"><ul className="grid grid-cols-5">{primaryNav.slice(0,2).map((item) => <NavItem key={item.to} {...item} active={pathname === item.to} />)}<li><Link to="/invite" className="flex flex-col items-center gap-0.5 py-2 text-[0.62rem] text-muted-foreground"><span className="grid size-8 place-items-center rounded-full bg-grape-soft text-grape"><Gift className="size-4" /></span>Rewards</Link></li>{primaryNav.slice(2).map((item) => <NavItem key={item.to} {...item} active={pathname.startsWith(item.to)} />)}</ul></nav>; }
 function NavItem({ to, label, icon: Icon, active }: { to: string; label: string; icon: React.ComponentType<{ className?: string }>; active: boolean }) { return <li><Link to={to} className={cn("flex flex-col items-center gap-1 py-3 text-[0.62rem]", active ? "text-primary" : "text-muted-foreground")}><Icon className="size-5" />{label}</Link></li>; }
 
-function SiteFooter() { return <footer className="mt-10 border-t border-border bg-secondary/40 pb-24 lg:pb-0"><div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:grid-cols-2 sm:px-6 lg:grid-cols-4 lg:px-8"><div><Logo /><p className="mt-3 text-xs leading-relaxed text-muted-foreground">The largest prediction market in East Africa. Forecast events, join shared pools and settle through M-Pesa.</p></div>{drawerGroups.map((group) => <div key={group.title}><h3 className="text-xs font-semibold uppercase text-muted-foreground">{group.title}</h3><ul className="mt-3 space-y-2">{group.links.map(([to,label]) => <li key={to+label}><Link to={to} className="text-sm hover:text-primary">{label}</Link></li>)}</ul></div>)}</div><div className="border-t border-border px-4 py-4 text-center text-xs text-muted-foreground"><Link to="/terms" className="hover:text-primary">Terms</Link> · <a href="https://wa.me/254116067033" target="_blank" rel="noreferrer" className="hover:text-primary">WhatsApp support: 0116067033</a> · 18+</div></footer>; }
+function SiteFooter() { return <footer className="mt-10 border-t border-border bg-secondary/40 pb-24 lg:pb-0"><div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:grid-cols-2 sm:px-6 lg:grid-cols-4 lg:px-8"><div><Link to="/" className="font-display text-xl font-bold">POLKA</Link><p className="mt-3 text-xs leading-relaxed text-muted-foreground">Skill-based forecasting across East Africa. Explore shared pools on polka.co.ke.</p></div>{drawerGroups.map((group) => <div key={group.title}><h3 className="text-xs font-semibold uppercase text-muted-foreground">{group.title}</h3><ul className="mt-3 space-y-2">{group.links.map(([to,label]) => <li key={to+label}><Link to={to} className="text-sm hover:text-primary">{label}</Link></li>)}</ul></div>)}</div><div className="border-t border-border px-4 py-4 text-center text-xs text-muted-foreground"><Link to="/terms" className="hover:text-primary">Terms</Link> · <a href="https://wa.me/254116067033" target="_blank" rel="noreferrer" className="hover:text-primary">WhatsApp support: 0116067033</a> · 18+</div></footer>; }
