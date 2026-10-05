@@ -26,7 +26,7 @@ type Phase = "idle" | "placing" | "placed";
  * Tap to open the forecasting panel; once a trade is placed the dock locks into
  * a "waiting for resolution" state with a route back to trading.
  */
-export function ForecastDock({ market, initialOutcome }: { market: Market; initialOutcome?: string }) {
+export function ForecastDock({ market, initialOutcome }: { market: Market; initialOutcome?: string | undefined }) {
   const { account, openAuth } = useAuth();
   const [open, setOpen] = useState(false);
   const [phase, setPhase] = useState<Phase>("idle");
@@ -232,7 +232,7 @@ function Panel({
   onReset: () => void;
   requireAuth: () => void;
   authenticated: boolean;
-  heldOutcomeId?: string;
+  heldOutcomeId?: string | undefined;
   locked: boolean;
   bare?: boolean;
 }) {
