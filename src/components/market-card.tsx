@@ -1,10 +1,12 @@
 import { Link } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
-import { formatCount, formatKsh, formatPct, timeLeft } from "@/lib/parimutuel";
+import { formatKsh, formatPct, timeLeft } from "@/lib/parimutuel";
 import { categoryOf, probabilities, totalPool, trendDelta, type Market } from "@/lib/mock-data";
-import { MarketThumb, VersusThumb } from "./market-thumb";
+import { MarketThumb } from "./market-thumb";
 import { toneSoft } from "./tone";
 import { BadgeCheck, CircleGauge, Clock } from "lucide-react";
+import { Button } from "./ui/button";
+import { useNavigate } from "@tanstack/react-router";
 
 /**
  * Compact market card. Binary, multi-outcome and sports markets all render in the
@@ -13,9 +15,9 @@ import { BadgeCheck, CircleGauge, Clock } from "lucide-react";
  * five-way market never grows taller than a Yes/No card beside it.
  */
 export function MarketCard({ market }: { market: Market }) {
+  const navigate = useNavigate();
   const probs = probabilities(market);
   const pool = totalPool(market);
-  const delta = trendDelta(market);
   const cat = categoryOf(market.category);
   const resolvedOutcome = market.resolved
     ? market.outcomes.find((o) => o.id === market.resolved!.outcomeId)
@@ -36,44 +38,23 @@ export function MarketCard({ market }: { market: Market }) {
   const lead = ranked[0]!;
   /* Binary markets headline the Yes side as "chance"; multi/sports headline the leader. */
   const headline = isBinary ? { label: "chance", prob: probs[0] ?? 0 } : { label: lead.label, prob: lead.prob };
-  const isVersus = market.kind === "sports" && Boolean(market.sports);
+  const actionLabel = (label: string, index: number) => market.kind === "sports" && market.sports && market.outcomes.length === 3
+    ? index === 1 ? "Draw" : index === 0 ? market.sports.home : market.sports.away
+    : label;
 
   return (
-    <Link
-      to="/market/$marketId"
-      params={{ marketId: market.id }}
-      className="group flex h-full min-h-[15.5rem] flex-col gap-3 rounded-lg border border-border bg-card p-3.5 shadow-card transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lift focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-    >
-      <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-3">
-        {isVersus ? <VersusThumb market={market} /> : <MarketThumb market={market} />}
-        <div className="min-w-0">
-          <h3 className="line-clamp-2 text-[0.95rem] leading-snug font-medium tracking-normal text-card-foreground">
-            {market.question}
-          </h3>
-          <div className="mt-1 flex items-center gap-1.5 overflow-hidden text-[0.7rem] text-muted-foreground">
-            <span className={cn("shrink-0 rounded-full px-1.5 py-0.5 font-medium", toneSoft[cat.tone])}>
-              {cat.label}
-            </span>
-            {market.kind === "sports" && market.sports && (
-              <span className="truncate">{market.sports.league}</span>
-            )}
-            {market.kind === "multi" && <span className="shrink-0">{market.outcomes.length}-way</span>}
-          </div>
+    <article className="flex h-full min-w-0 flex-col gap-2.5 rounded-lg border border-border bg-card p-3 shadow-card transition-colors hover:border-primary/40">
+      <Link to="/market/$marketId" params={{ marketId: market.id }} className="flex min-w-0 items-start gap-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+        <MarketThumb market={market} className="!size-9 !rounded-lg" />
+        <div className="min-w-0 flex-1">
+          <h3 className="line-clamp-2 break-words text-sm leading-snug font-medium text-card-foreground">{market.question}</h3>
+          <p className="mt-1 truncate text-[0.68rem] text-muted-foreground"><span className={cn("rounded px-1 font-medium", toneSoft[cat.tone])}>{cat.label}</span> {market.sports?.league ?? (market.kind === "multi" ? `${market.outcomes.length} outcomes` : "")}</p>
         </div>
-        <div className="flex max-w-[5.5rem] flex-col items-end gap-0.5">
-          <span className="font-display text-2xl leading-none tabular text-card-foreground">
-            {formatPct(headline.prob)}
-          </span>
-          {/* Yes/No markets read as "chance"; everything else labels the leader. */}
-          <span className="w-full truncate text-right text-[0.65rem] leading-none tracking-wide text-muted-foreground uppercase">
-            {isBinary ? "chance" : headline.label}
-          </span>
-          <span className={cn("text-[0.65rem] font-semibold tabular", delta >= 0 ? "text-yes" : "text-no")}>
-            {delta >= 0 ? "+" : ""}{(delta * 100).toFixed(1)} pts
-          </span>
+        <div className="w-14 shrink-0 text-right">
+          <span className="block font-display text-xl leading-none tabular">{formatPct(headline.prob)}</span>
+          <span className="block truncate text-[0.62rem] uppercase text-muted-foreground" title={headline.label}>{headline.label}</span>
         </div>
-
-      </div>
+      </Link>
 
       {resolvedOutcome ? (
         <div className="flex items-center gap-2 rounded-lg bg-yes-soft px-2.5 py-1.5 text-xs font-semibold text-yes">
@@ -81,22 +62,27 @@ export function MarketCard({ market }: { market: Market }) {
           <span className="truncate">Resolved {resolvedOutcome.label}</span>
         </div>
       ) : (
-        <div className="mt-auto flex items-center gap-2">
+        <div className="flex min-w-0 items-center gap-1.5">
           {shown.map((o) => (
-            <span
+            <Button
               key={o.id}
+              type="button"
+              size="sm"
+              disabled={market.status !== "open"}
+              title={`Forecast ${o.label} on ${market.question}`}
+              onClick={() => navigate({ to: "/market/$marketId", params: { marketId: market.id }, search: { outcome: o.id } })}
               className={cn(
-                "flex min-w-0 flex-1 items-center justify-center gap-1 rounded-md py-2 text-xs font-semibold transition-colors",
+                "min-w-0 flex-1 justify-between gap-1 rounded-md px-2 text-xs font-semibold shadow-none",
                 o.tone === "no"
-                   ? "bg-no-soft text-no group-hover:bg-no group-hover:text-primary-foreground"
+                   ? "bg-no-soft text-no hover:bg-no hover:text-primary-foreground"
                   : o.tone === "yes"
-                    ? "bg-yes-soft text-yes group-hover:bg-yes group-hover:text-primary-foreground"
+                    ? "bg-yes-soft text-yes hover:bg-yes hover:text-primary-foreground"
                     : toneSoft[o.tone],
               )}
             >
-              <span className="truncate">{o.label}</span>
+              <span className="min-w-0 truncate" title={o.label}>{actionLabel(o.label, all.findIndex((item) => item.id === o.id))}</span>
               <span className="shrink-0 tabular">{formatPct(o.prob)}</span>
-            </span>
+            </Button>
           ))}
           {hidden > 0 && (
             <span className="shrink-0 rounded-lg bg-secondary px-2 py-1.5 text-xs font-semibold text-muted-foreground tabular">
@@ -106,8 +92,8 @@ export function MarketCard({ market }: { market: Market }) {
         </div>
       )}
 
-      <div className="grid grid-cols-[1fr_auto_auto] items-center gap-2 border-t border-border/70 pt-2.5 text-[0.68rem] text-muted-foreground">
-        <span className="truncate tabular">{formatKsh(pool, { compact: true })} 24h vol</span>
+      <div className="flex min-w-0 flex-wrap items-center justify-between gap-x-2 gap-y-1 border-t border-border/70 pt-2 text-[0.65rem] text-muted-foreground">
+        <span className="tabular">{formatKsh(pool, { compact: true })} vol</span>
         <span className="flex items-center gap-1 tabular font-medium text-foreground">
           <Clock className="size-3" /> {market.resolved ? "Resolved" : timeLeft(market.closesAt)}
         </span>
@@ -115,15 +101,15 @@ export function MarketCard({ market }: { market: Market }) {
           <CircleGauge className="size-3" /> {pool >= 100_000 ? "Deep" : pool >= 40_000 ? "Active" : "New"}
         </span>
       </div>
-    </Link>
+    </article>
   );
 }
 
 export function MarketCardSkeleton() {
   return (
-    <div className="flex min-h-[15.5rem] flex-col gap-3 rounded-lg border border-border bg-card p-3.5">
+    <div className="flex flex-col gap-2.5 rounded-lg border border-border bg-card p-3">
       <div className="flex gap-3">
-        <div className="size-11 shrink-0 animate-pulse rounded-xl bg-muted" />
+        <div className="size-9 shrink-0 animate-pulse rounded-lg bg-muted" />
         <div className="flex-1 space-y-2">
           <div className="h-3 w-full animate-pulse rounded bg-muted" />
           <div className="h-3 w-2/3 animate-pulse rounded bg-muted" />
