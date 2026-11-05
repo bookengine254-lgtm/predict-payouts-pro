@@ -52,6 +52,14 @@ const SCALES: { id: TextScale; label: string; hint: string }[] = [
   { id: "large", label: "Large", hint: "Thumb-friendly" },
 ];
 
+type TabId = "profile" | "appearance" | "limits" | "security";
+const TABS: { id: TabId; label: string }[] = [
+  { id: "profile", label: "Profile" },
+  { id: "appearance", label: "Appearance & Feed" },
+  { id: "limits", label: "Limits & M-Pesa" },
+  { id: "security", label: "Security & Alerts" },
+];
+
 function SettingsPage() {
   const { signOut, account, updateProfile, openAuth } = useAuth();
   const { prefs, set, reset } = usePrefs();
@@ -60,6 +68,7 @@ function SettingsPage() {
   const [phone, setPhone] = useState(account?.phone || "0712 345 214");
   const [bio, setBio] = useState(account?.bio ?? "Forecasting Kenyan politics, sport and the shilling.");
   const [avatar, setAvatar] = useState<string | null>(account?.avatar ?? null);
+  const [tab, setTab] = useState<TabId>("profile");
 
   const saveProfile = () => {
     if (!account) {
@@ -97,9 +106,18 @@ function SettingsPage() {
         </Link>
       </header>
 
-      <div className="mt-5 grid gap-4 lg:grid-cols-2">
+      <div role="tablist" className="mt-5 flex gap-1 overflow-x-auto rounded-xl bg-secondary/60 p-1 hide-scrollbar">
+        {TABS.map((t) => (
+          <button key={t.id} type="button" role="tab" aria-selected={tab === t.id} onClick={() => setTab(t.id)}
+            className={cn("flex-1 whitespace-nowrap rounded-lg px-3 py-2 text-xs font-semibold transition-colors sm:text-sm", tab === t.id ? "bg-card text-foreground shadow-card" : "text-muted-foreground hover:text-foreground")}>
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="mx-auto mt-4 grid max-w-3xl gap-4">
         {/* ---------- Profile ---------- */}
-        <Section icon={UserRound} title="Your profile" hint="This is what other forecasters see on your markets.">
+        {tab === "profile" && <Section icon={UserRound} title="Your profile" hint="This is what other forecasters see on your markets.">
           <div className="flex items-center gap-3">
             {avatar ? (
               <img src={avatar} alt="" className="size-16 shrink-0 rounded-2xl object-cover" />
@@ -149,10 +167,10 @@ function SettingsPage() {
           >
             Save profile
           </button>
-        </Section>
+        </Section>}
 
         {/* ---------- Appearance ---------- */}
-        <Section icon={Moon} title="Appearance" hint="Dark is the house style. Light is there when you need it.">
+        {tab === "appearance" && <Section icon={Moon} title="Appearance" hint="Dark is the house style. Light is there when you need it.">
           <div className="grid grid-cols-2 gap-2">
             {(
               [
@@ -209,10 +227,10 @@ function SettingsPage() {
             hint="A short confirmation tick when a stake lands"
             icon={Volume2}
           />
-        </Section>
+        </Section>}
 
         {/* ---------- Notifications ---------- */}
-        <Section icon={Bell} title="Notifications" hint="Only the alerts that move your money.">
+        {tab === "security" && <Section icon={Bell} title="Notifications" hint="Only the alerts that move your money.">
           <Toggle
             checked={prefs.notifyResolutions}
             onChange={(v) => set("notifyResolutions", v)}
@@ -238,10 +256,10 @@ function SettingsPage() {
             hint="One daily summary of your open forecasts"
             icon={Phone}
           />
-        </Section>
+        </Section>}
 
         {/* ---------- Forecasting & safety ---------- */}
-        <Section icon={ShieldCheck} title="Forecasting & limits" hint="Skill-based forecasting, played within your means.">
+        {tab === "limits" && <Section icon={ShieldCheck} title="Forecasting & limits" hint="Skill-based forecasting, played within your means.">
           <Toggle
             checked={prefs.stakeConfirm}
             onChange={(v) => set("stakeConfirm", v)}
@@ -272,10 +290,10 @@ function SettingsPage() {
               Polka blocks new forecasts once you hit the ceiling until the week rolls over.
             </span>
           </label>
-        </Section>
+        </Section>}
 
         {/* ---------- Account & payouts ---------- */}
-        <Section icon={Wallet} title="Account & payouts" hint="Withdrawals only ever go to the number you paid from.">
+        {tab === "limits" && <Section icon={Wallet} title="Account & payouts" hint="Withdrawals only ever go to the number you paid from.">
           <Input label="M-Pesa number" value={phone} onChange={setPhone} icon={Smartphone} />
           <button
             type="button"
@@ -300,10 +318,10 @@ function SettingsPage() {
             title="Appear on the leaderboard"
             hint="Turn off to forecast quietly"
           />
-        </Section>
+        </Section>}
 
         {/* ---------- Danger zone ---------- */}
-        <Section icon={RotateCcw} title="Reset & sign out" hint="Nothing here touches your wallet balance.">
+        {tab === "security" && <Section icon={RotateCcw} title="Reset & sign out" hint="Nothing here touches your wallet balance.">
           <button
             type="button"
             onClick={() => {
@@ -335,7 +353,7 @@ function SettingsPage() {
           >
             <Trash2 className="size-4" /> Close my account
           </button>
-        </Section>
+        </Section>}
       </div>
       </div>
       </AuthGate>
