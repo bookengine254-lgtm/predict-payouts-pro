@@ -18,6 +18,7 @@ import { MarketThumb } from "@/components/market-thumb";
 import { MarketCard } from "@/components/market-card";
 import { OddsChart, OutcomePoll } from "@/components/odds-chart";
 import { ForecastDock } from "@/components/forecast-dock";
+import { ShareMarketDialog } from "@/components/share-market-dialog";
 import { toneSoft, toneText } from "@/components/tone";
 import { cn } from "@/lib/utils";
 import { formatCount, formatKsh, formatPct, timeLeft } from "@/lib/parimutuel";
@@ -195,13 +196,13 @@ function MarketDetail() {
           </header>
 
           {/* Share-to-earn */}
-          <button
+          <ShareMarketDialog
+            question={market.question}
+            marketId={market.id}
+            volume={pool}
+            outcomes={market.outcomes.map((o, i) => ({ label: o.label, probability: probs[i] ?? 0 }))}
+            trigger={<button
             type="button"
-            onClick={() =>
-              toast.success("Invite link copied", {
-                description: "KSh 500 lands in your wallet once 10 invited forecasters deposit.",
-              })
-            }
             className="flex w-full items-center gap-3 rounded-2xl bg-grape-soft p-4 text-left bevel press"
           >
             <span className="grid size-10 shrink-0 place-items-center rounded-full bg-grape/15 text-grape">
@@ -216,7 +217,8 @@ function MarketDetail() {
               </span>
             </span>
             <Share2 className="size-4 shrink-0 text-grape" />
-          </button>
+          </button>}
+          />
 
           <OddsChart market={market} />
 
