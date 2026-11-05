@@ -19,6 +19,7 @@ import { cn } from "@/lib/utils";
 import { formatKsh } from "@/lib/parimutuel";
 import { currentUser, transactions, type Transaction } from "@/lib/mock-data";
 import { AuthGate } from "@/components/auth-gate";
+import { MIN_TOPUP, MIN_WITHDRAW, validateTopup, validateWithdraw, withdrawFee } from "@/lib/fees";
 
 export const Route = createFileRoute("/wallet")({
   validateSearch: (search: Record<string, unknown>): { topup?: boolean } =>
@@ -50,14 +51,24 @@ function WalletPage() {
   const [phase, setPhase] = useState<Phase>("idle");
   const [mode, setMode] = useState<"topup" | "withdraw">(topup ? "topup" : "topup");
 
+  const fee = mode === "withdraw" ? withdrawFee(amount) : 0;
+  const error = mode === "topup" ? validateTopup(amount) : validateWithdraw(amount, currentUser.balance);
+
+  const shareReceipt = (t: Transaction) => {
+    const ref = typeof window !== "undefined" ? `${window.location.origin}/?ref=${encodeURIComponent("polka")}` : "";
+    const text = `I just ${t.amount >= 0 ? "received" : "moved"} ${formatKsh(Math.abs(t.amount))} on Polka — ${t.label}. Forecast East Africa and cash out to M-Pesa: ${ref}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener");
+  };
+
   const startPush = () => {
+    if (error) return;
     setPhase("pushing");
     window.setTimeout(() => setPhase("waiting"), 900);
     window.setTimeout(() => {
       setPhase("done");
       toast.success(
         mode === "topup" ? `${formatKsh(amount)} added to your wallet` : `${formatKsh(amount)} sent to ${phone}`,
-        { description: mode === "topup" ? "M-Pesa confirmation NLJ7RT61SV." : "Withdrawal fee KSh 25 applied." },
+        { description: mode === "topup" ? "Free top-up — no fees." : `M-Pesa fee ${formatKsh(fee)} applied.` },
       );
     }, 3_200);
   };
@@ -127,6 +138,9 @@ function WalletPage() {
                     {t.amount >= 0 ? "+" : "−"}
                     {formatKsh(Math.abs(t.amount))}
                   </span>
+                  {(t.kind === "payout" || t.kind === "withdraw" || t.kind === "referral" || t.kind === "creator_fee") && (
+                    <button type="button" onClick={() => shareReceipt(t)} aria-label="Share receipt on WhatsApp" className="col-start-3 justify-self-end text-[0.65rem] font-semibold text-primary hover:underline">Share receipt</button>
+                  )}
                 </li>
               ))}
             </ul>
@@ -200,10 +214,18 @@ function WalletPage() {
               />
             </div>
 
+            <dl className="mt-4 space-y-1.5 rounded-2xl border border-border p-3 text-xs">
+              <div className="flex justify-between"><dt className="text-muted-foreground">Amount</dt><dd className="tabular">{formatKsh(amount)}</dd></div>
+              <div className="flex justify-between"><dt className="text-muted-foreground">M-Pesa fee</dt><dd className={cn("tabular", fee === 0 && "font-semibold text-yes")}>{fee === 0 ? "Free" : formatKsh(fee)}</dd></div>
+              <div className="flex justify-between border-t border-border pt-1.5 font-semibold"><dt>{mode === "topup" ? "Added to wallet" : "You receive"}</dt><dd className="tabular">{formatKsh(amount)}</dd></div>
+              {mode === "withdraw" && <div className="flex justify-between text-muted-foreground"><dt>Taken from balance</dt><dd className="tabular">{formatKsh(amount + fee)}</dd></div>}
+            </dl>
+            {error && amount > 0 && <p className="mt-2 text-xs text-no">{error}</p>}
+
             {phase === "idle" && (
               <button
                 type="button"
-                disabled={amount <= 0}
+                disabled={Boolean(error)}
                 onClick={startPush}
                 className={cn(
                   "mt-5 flex w-full items-center justify-center gap-2 rounded-2xl py-3.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-40 press",
@@ -246,13 +268,13 @@ function WalletPage() {
 
             <ul className="mt-5 space-y-1.5 text-[0.7rem] text-muted-foreground">
               <li className="flex items-center gap-1.5">
-                <ShieldCheck className="size-3 shrink-0 text-yes" /> Top-ups are free. Withdrawals cost KSh 25.
+                <ShieldCheck className="size-3 shrink-0 text-yes" /> Top-ups are always free (minimum KSh {MIN_TOPUP}).
+              </li>
+              <li className="flex items-center gap-1.5">
+                <Zap className="size-3 shrink-0 text-amber" /> Withdrawals from KSh {MIN_WITHDRAW}; you only pay the M-Pesa fee.
               </li>
               <li className="flex items-center gap-1.5">
                 <Lock className="size-3 shrink-0 text-yes" /> Withdrawals only go to the number you paid from.
-              </li>
-              <li className="flex items-center gap-1.5">
-                <Zap className="size-3 shrink-0 text-amber" /> Instant payout available at 1.0%.
               </li>
             </ul>
           </div>
