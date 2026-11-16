@@ -12,7 +12,7 @@ import {
   TrendingUp,
   Users,
 } from "lucide-react";
-import { toast } from "sonner";
+import { CommentThread } from "@/components/comment-thread";
 import { AppShell } from "@/components/app-shell";
 import { MarketThumb } from "@/components/market-thumb";
 import { MarketCard } from "@/components/market-card";
@@ -82,21 +82,10 @@ export const Route = createFileRoute("/market/$marketId")({
 
 const TABS = ["Description", "My position", "My forecasts"] as const;
 
-type CommentTone = "primary" | "grape" | "teal" | "amber";
-type MarketComment = { who: string; initials: string; tone: CommentTone; when: string; text: string };
-
-const SEED_COMMENTS: MarketComment[] = [
-  { who: "amina_k", initials: "AK", tone: "grape" as const, when: "2h ago", text: "Pool is leaning heavy on Yes but the criteria only counts the published statement — careful." },
-  { who: "brian_o", initials: "BO", tone: "teal" as const, when: "5h ago", text: "Added a small position on the underdog. Implied looks 6 points too low to me." },
-  { who: "wanjiru", initials: "WM", tone: "amber" as const, when: "yesterday", text: "Sources listed are solid. This is the cleanest resolution wording I have seen on Polka." },
-];
-
 function MarketDetail() {
   const { market } = Route.useLoaderData() as { market: Market };
   const { outcome } = Route.useSearch();
   const [tab, setTab] = useState<(typeof TABS)[number]>("Description");
-  const [comments, setComments] = useState(SEED_COMMENTS);
-  const [draft, setDraft] = useState("");
 
   const probs = probabilities(market);
   const pool = totalPool(market);
@@ -117,7 +106,7 @@ function MarketDetail() {
         <span className={toneText[cat.tone]}>{cat.label}</span>
       </nav>
 
-      <div className="grid gap-6 pb-32 lg:grid-cols-[minmax(0,13fr)_minmax(320px,7fr)] lg:pb-0">
+      <div className="grid gap-6 pb-8 lg:grid-cols-[minmax(0,13fr)_minmax(320px,7fr)] lg:pb-0">
         <div className="min-w-0 space-y-4">
           <header className="rounded-2xl bg-card p-4 sm:p-5">
             {isVersus ? (
@@ -219,6 +208,10 @@ function MarketDetail() {
             <Share2 className="size-4 shrink-0 text-grape" />
           </button>}
           />
+
+          <div className="lg:hidden">
+            <ForecastDock key={`m-${market.id}-${outcome ?? ""}`} market={market} initialOutcome={outcome} />
+          </div>
 
           <OddsChart market={market} />
 
@@ -360,62 +353,13 @@ function MarketDetail() {
             </div>
           </section>
 
-          {/* Discussion lives after the related markets so the pool comes first. */}
-          <section className="rounded-2xl bg-card p-4">
-            <h2 className="text-sm font-semibold">Comments</h2>
-            <ul className="mt-3 space-y-2">
-              {comments.map((c, idx) => (
-                <li key={`${c.who}-${idx}`} className="flex gap-2.5 rounded-xl bg-secondary/50 p-3">
-                  <span
-                    className={cn(
-                      "grid size-8 shrink-0 place-items-center rounded-full font-display text-[0.7rem]",
-                      toneSoft[c.tone],
-                    )}
-                  >
-                    {c.initials}
-                  </span>
-                  <div className="min-w-0">
-                    <p className="text-xs text-muted-foreground">
-                      <span className="font-semibold text-foreground">@{c.who}</span> · {c.when}
-                    </p>
-                    <p className="mt-1 text-sm leading-relaxed">{c.text}</p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                const text = draft.trim();
-                if (!text) return;
-                setComments((prev) => [
-                  { who: "you", initials: "YN", tone: "primary" as const, when: "just now", text },
-                  ...prev,
-                ]);
-                setDraft("");
-                toast.success("Comment posted");
-              }}
-              className="mt-3 flex items-end gap-2"
-            >
-              <textarea
-                value={draft}
-                onChange={(e) => setDraft(e.target.value)}
-                rows={2}
-                placeholder="Share your read on this market…"
-                className="min-w-0 flex-1 resize-none rounded-xl border border-input bg-background px-3 py-2.5 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              />
-              <button
-                type="submit"
-                className="shrink-0 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground press"
-              >
-                Post
-              </button>
-            </form>
-          </section>
+          <CommentThread market={market} />
         </div>
 
         <aside className="lg:sticky lg:top-24 lg:self-start">
-          <ForecastDock key={`${market.id}-${outcome ?? ""}`} market={market} initialOutcome={outcome} />
+          <div className="hidden lg:block">
+            <ForecastDock key={`d-${market.id}-${outcome ?? ""}`} market={market} initialOutcome={outcome} />
+          </div>
 
           <div className="mt-3 hidden rounded-2xl bg-card p-4 bevel lg:block">
             <h3 className="text-sm font-semibold">Top forecasters here</h3>

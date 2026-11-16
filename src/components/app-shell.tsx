@@ -1,8 +1,9 @@
 import { Link, useRouter, useRouterState } from "@tanstack/react-router";
 import { useState, type ReactNode } from "react";
-import { Bell, BarChart3, ChevronLeft, Compass, Gift, Menu, Moon, Plus, Search, Settings, Sun, Trophy, User } from "lucide-react";
+import { Bell, BarChart3, ChevronLeft, Compass, Gift, Menu, Moon, Search, Settings, Sun, Trophy, User } from "lucide-react";
 import { AuthSheet } from "./auth-sheet";
 import { Logo } from "./logo";
+import { QuickTopup } from "./quick-topup";
 import { OnboardingSheet } from "./onboarding-sheet";
 import { QuickActions } from "./quick-actions";
 import { Button } from "./ui/button";
@@ -72,10 +73,10 @@ function TopBar({ back, title }: { back: boolean; title: string }) {
       <div className="flex shrink-0 items-center gap-1 sm:gap-2 lg:gap-2.5">
       {account ? <>
         <Link to="/wallet" search={{}} className="hidden rounded-md bg-secondary px-3 py-2 text-xs text-muted-foreground lg:block">Cash <strong className="ml-1 text-foreground tabular">{formatKsh(currentUser.balance, { compact: true })}</strong></Link>
-        <Button asChild size="sm" className="hidden lg:inline-flex"><Link to="/wallet" search={{ topup: true }}><Plus /> Top up</Link></Button>
+        <QuickTopup className="hidden lg:inline-flex" />
         <Button asChild variant="ghost" size="icon" className="hidden lg:inline-flex"><Link to="/activity" aria-label="Notifications"><Bell /></Link></Button>
         <Link to="/wallet" search={{}} className="rounded-full bg-secondary px-2.5 py-1 text-xs font-semibold tabular lg:hidden">{formatKsh(currentUser.balance, { compact: true })}</Link>
-        <Button asChild size="sm" className="h-7 px-2 text-xs lg:hidden"><Link to="/wallet" search={{ topup: true }}><Plus /> Top up</Link></Button>
+        <QuickTopup compact className="lg:hidden" />
         <NavDrawer avatar={account.avatar} initials={account.initials} />
       </> : <>
         <Button size="sm" onClick={() => openAuth("signin")} className="bg-yes text-primary-foreground hover:bg-yes/90">Sign in</Button>

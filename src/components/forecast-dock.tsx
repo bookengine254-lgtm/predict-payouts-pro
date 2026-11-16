@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
-import { Check, ChevronUp, Clock, Info, Loader2, X } from "lucide-react";
+import { Clock, Info, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { toneSoft } from "./tone";
 import { cn } from "@/lib/utils";
 import { formatKsh, formatPct, quotePayout } from "@/lib/parimutuel";
 import { NOW, positions, probabilities, totalPool, type Market, type Outcome } from "@/lib/mock-data";
@@ -28,7 +27,6 @@ type Phase = "idle" | "placing" | "placed";
  */
 export function ForecastDock({ market, initialOutcome }: { market: Market; initialOutcome?: string | undefined }) {
   const { account, openAuth } = useAuth();
-  const [open, setOpen] = useState(false);
   const [phase, setPhase] = useState<Phase>("idle");
   const [outcomeId, setOutcomeId] = useState<string | null>(initialOutcome && market.outcomes.some((o) => o.id === initialOutcome) ? initialOutcome : null);
   const [stake, setStake] = useState(200);
@@ -63,7 +61,6 @@ export function ForecastDock({ market, initialOutcome }: { market: Market; initi
     window.setTimeout(() => {
       setPhase("placed");
       setPlaced({ outcome: selected, stake, payout: quote.payout });
-      setOpen(false);
       toast.success(`Forecast locked · ${formatKsh(stake)} on ${selected.label}`, {
         description: `Pays ${formatKsh(quote.payout)} if correct. Resolves in ${untilLabel(market.closesAt)}.`,
       });
@@ -72,59 +69,8 @@ export function ForecastDock({ market, initialOutcome }: { market: Market; initi
 
   return (
     <>
-      {/* ---------- Dock ---------- */}
-      <div className="fixed inset-x-0 bottom-[calc(4.25rem+env(safe-area-inset-bottom))] z-40 px-3 lg:hidden">
-        {placed ? (
-          <div className="rounded-2xl border border-border bg-card px-4 py-3 bevel-raised rise-in">
-            <div className="flex items-center gap-3">
-              <span className="grid size-9 shrink-0 place-items-center rounded-full bg-yes-soft text-yes">
-                <Check className="size-5" />
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold">
-                  Waiting for resolution · {untilLabel(market.closesAt)}
-                </p>
-                <p className="truncate text-xs text-muted-foreground tabular">
-                  {formatKsh(placed.stake)} on {placed.outcome.label} · pays{" "}
-                  <span className="font-semibold text-yes">{formatKsh(placed.payout)}</span>
-                </p>
-              </div>
-            </div>
-            <Button
-              type="button"
-              onClick={() => {
-                setPlaced(null);
-                setPhase("idle");
-                setOutcomeId(null);
-                setOpen(true);
-              }}
-              variant="outline" className="mt-2.5 w-full"
-            >
-              Make another trade
-            </Button>
-          </div>
-        ) : (
-          <Button
-            type="button"
-            onClick={() => setOpen(true)}
-            disabled={closed}
-            className="flex h-auto w-full items-center justify-between gap-3 rounded-lg bg-yes px-4 py-3.5 text-left text-primary-foreground disabled:opacity-50"
-          >
-            <span className="min-w-0">
-              <span className="block text-base leading-tight font-semibold">
-                {closed ? "Market closed" : selected ? `Forecast ${selected.label}` : "Explore outcomes"}
-              </span>
-              <span className="block truncate text-xs opacity-90 tabular">
-                {formatKsh(pool, { compact: true })} pool · closes in {untilLabel(market.closesAt)}
-              </span>
-            </span>
-            <ChevronUp className="size-5 shrink-0" />
-          </Button>
-        )}
-      </div>
-
       {/* Desktop: the same panel, docked in the sidebar column. */}
-      <div className="hidden lg:block">
+      <div>
         <Panel
           market={market}
           probs={probs}
@@ -148,55 +94,6 @@ export function ForecastDock({ market, initialOutcome }: { market: Market; initi
         />
       </div>
 
-      {/* ---------- Mobile sheet ---------- */}
-      {open && (
-        <div className="fixed inset-0 z-50 lg:hidden">
-          <Button
-            type="button"
-            aria-label="Close forecasting panel"
-            onClick={() => setOpen(false)}
-            className="absolute inset-0 h-full w-full rounded-none bg-background/70 backdrop-blur-sm hover:bg-background/70"
-          />
-          <div className="absolute inset-x-0 bottom-0 max-h-[92vh] overflow-y-auto rounded-t-3xl border-t border-border bg-card p-4 pb-8 bevel-raised sheet-up">
-            <div className="mb-3 flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <h2 className="text-lg leading-tight font-semibold">Place your forecast</h2>
-                <p className="truncate text-xs text-muted-foreground">{market.shortTitle}</p>
-              </div>
-              <Button
-                type="button"
-                onClick={() => setOpen(false)}
-                variant="secondary" size="icon" className="shrink-0 rounded-full"
-                aria-label="Close"
-              >
-                <X className="size-4" />
-              </Button>
-            </div>
-            <Panel
-              market={market}
-              probs={probs}
-              outcomeId={outcomeId}
-              setOutcomeId={setOutcomeId}
-              stake={stake}
-              setStake={setStake}
-              quote={quote}
-              phase={phase}
-              placed={placed}
-              onTrade={trade}
-              requireAuth={() => openAuth("signup")}
-              authenticated={Boolean(account)}
-              heldOutcomeId={held?.outcomeId}
-              locked={locked}
-              onReset={() => {
-                setPlaced(null);
-                setPhase("idle");
-                setOutcomeId(null);
-              }}
-              bare
-            />
-          </div>
-        </div>
-      )}
     </>
   );
 }
@@ -241,7 +138,7 @@ function Panel({
 
   return (
     <div className={cn(!bare && "rounded-2xl border border-border bg-card p-4 bevel")}>
-      {!bare && <h2 className="text-base font-semibold">Explore this forecast</h2>}
+      {!bare && <h2 className="text-base font-semibold">Pick your side</h2>}
 
       {placed ? (
         <div className="space-y-3">
@@ -265,7 +162,7 @@ function Panel({
         </div>
       ) : (
         <>
-          <div className="mt-3 grid grid-cols-2 gap-2">
+          <div className={cn("mt-3 grid gap-2.5", market.outcomes.length === 2 ? "grid-cols-2" : "grid-cols-1")}>
             {market.outcomes.map((o, i) => {
               const active = outcomeId === o.id;
               return (
@@ -276,8 +173,10 @@ function Panel({
                   variant="outline"
                   disabled={Boolean(heldOutcomeId && heldOutcomeId !== o.id)}
                   className={cn(
-                    "h-auto min-h-11 justify-between gap-2 rounded-lg px-3 py-2 text-left",
-                    active ? toneSoft[o.tone] : "border-border hover:bg-accent",
+                    "chunky h-auto min-h-14 justify-between gap-2 rounded-xl border-2 px-4 py-3 text-left",
+                    active
+                      ? (o.tone === "no" || (market.outcomes.length === 2 && i === 1)) ? "border-no bg-no text-primary-foreground hover:bg-no/90 hover:text-primary-foreground" : "border-yes bg-yes text-primary-foreground hover:bg-yes/90 hover:text-primary-foreground"
+                      : (o.tone === "no" || (market.outcomes.length === 2 && i === 1)) ? "border-no/40 text-no hover:bg-no-soft" : "border-yes/40 text-yes hover:bg-yes-soft",
                   )}
                 >
                   <span className="min-w-0 truncate text-base font-semibold">{o.label}</span>

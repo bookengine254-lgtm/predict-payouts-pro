@@ -1,11 +1,10 @@
 import { Link } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 import { formatKsh, formatPct, timeLeft } from "@/lib/parimutuel";
-import { categoryOf, probabilities, totalPool, trendDelta, type Market } from "@/lib/mock-data";
+import { categoryOf, probabilities, totalPool, type Market } from "@/lib/mock-data";
 import { MarketThumb } from "./market-thumb";
 import { toneSoft } from "./tone";
-import { BadgeCheck, CircleGauge, Clock } from "lucide-react";
-import { Button } from "./ui/button";
+import { BadgeCheck } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 
 /**
@@ -35,24 +34,61 @@ export function MarketCard({ market }: { market: Market }) {
       ? all
       : ranked.slice(0, 2);
   const hidden = market.outcomes.length - shown.length;
-  const lead = ranked[0]!;
-  /* Binary markets headline the Yes side as "chance"; multi/sports headline the leader. */
-  const headline = isBinary ? { label: "chance", prob: probs[0] ?? 0 } : { label: lead.label, prob: lead.prob };
   const actionLabel = (label: string, index: number) => market.kind === "sports" && market.sports && market.outcomes.length === 3
     ? index === 1 ? "Draw" : index === 0 ? market.sports.home : market.sports.away
     : label;
 
-  return (
-    <article className="flex h-full min-w-0 flex-col gap-2.5 rounded-lg border border-border bg-card p-3 shadow-card transition-colors hover:border-primary/40">
-      <Link to="/market/$marketId" params={{ marketId: market.id }} className="flex min-w-0 items-start gap-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-        <MarketThumb market={market} className="!size-9 !rounded-lg" />
-        <div className="min-w-0 flex-1">
-          <h3 className="line-clamp-2 break-words text-sm leading-snug font-medium text-card-foreground">{market.question}</h3>
-          <p className="mt-1 truncate text-[0.68rem] text-muted-foreground"><span className={cn("rounded px-1 font-medium", toneSoft[cat.tone])}>{cat.label}</span> {market.sports?.league ?? (market.kind === "multi" ? `${market.outcomes.length} outcomes` : "")}</p>
+  const go = (id: string) => navigate({ to: "/market/$marketId", params: { marketId: market.id }, search: { outcome: id } });
+  const closed = market.status !== "open";
+  const versus = market.kind === "sports" && market.sports && market.outcomes.length <= 3;
+  const kickoff = market.sports ? new Date(market.sports.kickoff).toLocaleTimeString("en-KE", { hour: "numeric", minute: "2-digit" }) : "";
+
+  if (versus && !resolvedOutcome) {
+    const sides = [
+      { name: market.sports!.home, thumb: market.versus?.homeThumb, emoji: market.versus?.homeEmoji ?? market.thumbnailEmoji, o: all[0]! },
+      { name: market.sports!.away, thumb: market.versus?.awayThumb, emoji: market.versus?.awayEmoji ?? market.thumbnailEmoji, o: all[all.length - 1]! },
+    ];
+    return (
+      <article className="flex h-full min-w-0 flex-col gap-3 rounded-xl border border-border bg-card p-3 shadow-card transition-colors hover:border-primary/40">
+        <Link to="/market/$marketId" params={{ marketId: market.id }} className="flex flex-col gap-2.5">
+          <p className="flex items-center gap-1.5 text-[0.7rem] text-muted-foreground tabular">
+            <span className="rounded bg-secondary px-1.5 py-0.5 font-semibold text-foreground">{kickoff}</span>
+            <span>·</span><span>{formatKsh(pool, { compact: true })} Vol</span>
+            <span className="ml-auto truncate">{market.sports!.league}</span>
+          </p>
+          {sides.map((t) => (
+            <div key={t.name} className="flex min-w-0 items-center gap-2.5">
+              <span className="grid size-7 shrink-0 place-items-center overflow-hidden rounded-md bg-secondary text-base">
+                {t.thumb ? <img src={t.thumb} alt="" className="size-full object-cover" loading="lazy" /> : t.emoji}
+              </span>
+              <span className="min-w-0 flex-1 truncate text-sm font-semibold">{t.name}</span>
+              <span className="shrink-0 text-sm font-semibold tabular text-muted-foreground">{formatPct(t.o.prob)}</span>
+            </div>
+          ))}
+        </Link>
+        <div className="mt-auto flex gap-1.5">
+          {all.map((o, i) => {
+            const draw = all.length === 3 && i === 1;
+            return (
+              <button key={o.id} type="button" disabled={closed} onClick={() => go(o.id)} title={o.label}
+                className={cn("chunky-solid min-w-0 flex-1 rounded-lg px-2 py-2 text-xs font-bold uppercase tabular disabled:opacity-50",
+                  draw ? "border border-border bg-secondary text-foreground" : i === 0 ? "bg-yes text-primary-foreground" : "bg-primary text-primary-foreground")}>
+                <span className="block truncate">{draw ? "Draw" : actionLabel(o.label, i).slice(0, 3)} {Math.round(o.prob * 100)}%</span>
+              </button>
+            );
+          })}
         </div>
-        <div className="w-14 shrink-0 text-right">
-          <span className="block font-display text-xl leading-none tabular">{formatPct(headline.prob)}</span>
-          <span className="block truncate text-[0.62rem] uppercase text-muted-foreground" title={headline.label}>{headline.label}</span>
+      </article>
+    );
+  }
+
+  return (
+    <article className="flex h-full min-w-0 flex-col gap-2.5 rounded-xl border border-border bg-card p-3 shadow-card transition-colors hover:border-primary/40">
+      <Link to="/market/$marketId" params={{ marketId: market.id }} className="flex min-w-0 items-start gap-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+        <MarketThumb market={market} className="!size-10 !rounded-lg" />
+        <div className="min-w-0 flex-1">
+          <h3 className="line-clamp-2 break-words text-sm leading-snug font-semibold text-card-foreground">{market.question}</h3>
+          <p className="mt-0.5 truncate text-[0.68rem] text-muted-foreground"><span className={cn("rounded px-1 font-medium", toneSoft[cat.tone])}>{cat.label}</span> {market.resolved ? "Resolved" : timeLeft(market.closesAt)}</p>
         </div>
       </Link>
 
@@ -62,44 +98,26 @@ export function MarketCard({ market }: { market: Market }) {
           <span className="truncate">Resolved {resolvedOutcome.label}</span>
         </div>
       ) : (
-        <div className="flex min-w-0 items-center gap-1.5">
-          {shown.map((o) => (
-            <Button
-              key={o.id}
-              type="button"
-              size="sm"
-              disabled={market.status !== "open"}
-              title={`Forecast ${o.label} on ${market.question}`}
-              onClick={() => navigate({ to: "/market/$marketId", params: { marketId: market.id }, search: { outcome: o.id } })}
-              className={cn(
-                "min-w-0 flex-1 justify-between gap-1 rounded-md px-2 text-xs font-semibold shadow-none",
-                o.tone === "no"
-                   ? "bg-no-soft text-no hover:bg-no hover:text-primary-foreground"
-                  : o.tone === "yes"
-                    ? "bg-yes-soft text-yes hover:bg-yes hover:text-primary-foreground"
-                    : toneSoft[o.tone],
-              )}
-            >
-              <span className="min-w-0 truncate" title={o.label}>{actionLabel(o.label, all.findIndex((item) => item.id === o.id))}</span>
-              <span className="shrink-0 tabular">{formatPct(o.prob)}</span>
-            </Button>
-          ))}
-          {hidden > 0 && (
-            <span className="shrink-0 rounded-lg bg-secondary px-2 py-1.5 text-xs font-semibold text-muted-foreground tabular">
-              +{hidden}
-            </span>
-          )}
+        <div className="flex flex-col gap-1.5">
+          {shown.map((o, i) => {
+            const neg = o.tone === "no" || (isBinary && i === 1);
+            return (
+              <div key={o.id} className="flex min-w-0 items-center gap-2">
+                <span className={cn("h-5 w-1 shrink-0 rounded-full", neg ? "bg-no" : "bg-yes")} />
+                <span className="min-w-0 flex-1 truncate text-sm font-medium" title={o.label}>{actionLabel(o.label, all.findIndex((x) => x.id === o.id))}</span>
+                <button type="button" disabled={closed} onClick={() => go(o.id)} title={`Forecast ${o.label}`}
+                  className={cn("chunky-solid w-16 shrink-0 rounded-lg py-1.5 text-sm font-bold tabular text-primary-foreground disabled:opacity-50", neg ? "bg-no" : "bg-yes")}>
+                  {formatPct(o.prob)}
+                </button>
+              </div>
+            );
+          })}
         </div>
       )}
 
-      <div className="flex min-w-0 flex-wrap items-center justify-between gap-x-2 gap-y-1 border-t border-border/70 pt-2 text-[0.65rem] text-muted-foreground">
-        <span className="tabular">{formatKsh(pool, { compact: true })} vol</span>
-        <span className="flex items-center gap-1 tabular font-medium text-foreground">
-          <Clock className="size-3" /> {market.resolved ? "Resolved" : timeLeft(market.closesAt)}
-        </span>
-        <span className="flex items-center gap-1 font-medium text-yes">
-          <CircleGauge className="size-3" /> {pool >= 100_000 ? "Deep" : pool >= 40_000 ? "Active" : "New"}
-        </span>
+      <div className="mt-auto flex items-center justify-between gap-2 pt-1 text-[0.68rem] text-muted-foreground">
+        <span className="tabular">{formatKsh(pool, { compact: true })} Vol</span>
+        {hidden > 0 && <span className="font-semibold tabular">{hidden} more</span>}
       </div>
     </article>
   );
