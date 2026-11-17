@@ -12,6 +12,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
+import { SmartSearch } from "@/components/smart-search";
 import { MarketCard } from "@/components/market-card";
 import { LearnBanner } from "@/components/banners";
 import { categories, currentUser, markets, totalPool, type CategoryId, type Market } from "@/lib/mock-data";
@@ -78,7 +79,6 @@ function Discover() {
   }, [category, sort, open]);
 
   const inCategory = (m: Market) => category === "all" || m.category === category;
-  const featured = open.filter((m) => m.featured && inCategory(m));
   const resolved = markets
     .filter((m) => (m.status === "resolved" || m.status === "disputed") && inCategory(m))
     .slice(0, 4);
@@ -86,7 +86,8 @@ function Discover() {
 
   return (
     <AppShell>
-      <nav aria-label="Categories" className="sticky top-14 z-20 -mx-4 mb-3 flex gap-1.5 overflow-x-auto bg-background/95 px-4 py-2 backdrop-blur [scrollbar-width:none] lg:hidden">
+      <SmartSearch />
+      <nav aria-label="Categories" className="-mx-4 mt-2 mb-1 flex gap-1.5 overflow-x-auto bg-background/95 px-4 py-2 backdrop-blur [scrollbar-width:none] lg:hidden">
         {[{ id: "all" as const, label: "All" }, ...categories].map((c) => (
           <Link
             key={c.id}
@@ -101,9 +102,8 @@ function Discover() {
           </Link>
         ))}
       </nav>
-      {category === "all" && <HeroSlider top={visible[0] ?? open[0]} />}
 
-      <div className={cn("hidden items-center justify-between gap-4 border-b border-border py-3 lg:flex", category === "all" ? "mt-5" : "mt-0")}>
+      <div className={cn("hidden items-center justify-between gap-4 border-b border-border py-3 lg:flex", "mt-2")}>
         <nav aria-label="Market categories" className="flex min-w-0 items-center gap-1 overflow-x-auto hide-scrollbar">
           {[{ id: "all" as const, label: "All" }, ...categories.filter((c) => ["politics", "sports", "crypto", "economy", "weather"].includes(c.id))].map((c) => (
             <Link key={c.id} to="/" search={c.id === "all" ? {} : { category: c.id }} className={cn("shrink-0 rounded-md px-3 py-2 text-sm font-medium", category === c.id ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-accent hover:text-foreground")}>{c.label}</Link>
@@ -112,19 +112,7 @@ function Discover() {
         <SortControls sort={sort} setSort={setSort} />
       </div>
 
-      {featured.length > 0 && (
-        <section className="mt-6">
-          <SectionHead icon={Flame} title="Featured pools" hint="Deepest liquidity right now" />
-          <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {featured.map((m) => (
-              <MarketCard key={m.id} market={m} />
-            ))}
-          </div>
-        </section>
-      )}
-
-
-      <section className="mt-8">
+      <section className="mt-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <SectionHead
             icon={sort === "closing" ? Clock : sort === "new" ? Sparkles : TrendingUp}
